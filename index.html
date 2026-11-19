@@ -412,6 +412,7 @@ const SUPA_URL="https://jmwrtwcyzxsrhtuvxyck.supabase.co";      // z. B. "https:
 const SUPA_KEY="sb_publishable_ogWE1yFO1SICasIzr7bUNQ_HNFIo1by";      // „anon public“-Schlüssel
 const COLLS=["skis","races","grinds"];
 let SUPA=Object.assign({url:SUPA_URL,key:SUPA_KEY},LS.get("sm_supa",{}));
+let LASTERR="";
 let sb=null,SESSION=null,SUB=null,QUEUE=LS.get("sm_queue",[]),FLUSHING=false;
 function enqueue(op,c,id,data){
   QUEUE=QUEUE.filter(q=>!(q.c===c&&q.id===id));QUEUE.push({op,c,id,data});LS.set("sm_queue",QUEUE);
@@ -426,7 +427,8 @@ async function flushQueue(){
       if(r.error)throw r.error;
       QUEUE.shift();LS.set("sm_queue",QUEUE);}
     setSync("cloud","Server · synchron");
-  }catch(e){setSync("local",`Server offline · ${QUEUE.length} ausstehend`)}
+    LASTERR="";
+  }catch(e){LASTERR=errTxt(e);setSync("local",`Server-Fehler · ${QUEUE.length} ausstehend`)}
   FLUSHING=false;renderServer();
 }
 async function put(coll,obj){
@@ -446,6 +448,12 @@ async function del(coll,id){
   else saveLocal();
   renderAll();
 }
+function errTxt(e){const m=[e?.code,e?.message||String(e),e?.hint].filter(Boolean).join(" · ");
+  if(/PGRST205|does not exist|schema cache/i.test(m))return "Tabellen fehlen – supabase_setup.sql im SQL Editor ausführen. ("+m+")";
+  if(/row-level security|42501|permission denied/i.test(m))return "Keine Berechtigung – Richtlinien aus supabase_setup.sql fehlen. ("+m+")";
+  if(/JWT|apikey|Invalid API key|401/i.test(m))return "Schlüssel abgelehnt – Publishable Key prüfen. ("+m+")";
+  if(/Failed to fetch|NetworkError|Load failed/i.test(m))return "Keine Verbindung zum Server (Internet / Adresse prüfen).";
+  return m}
 function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement("script");s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s)})}
 async function pullAll(){
   for(const c of COLLS){
@@ -470,7 +478,7 @@ function subscribe(){
 async function startSupa(){
   setSync("cloud","Server · verbinde …");
   try{await flushQueue();await pullAll();subscribe();setSync("cloud",QUEUE.length?`Server · ${QUEUE.length} ausstehend`:"Server · synchron")}
-  catch(e){setSync("local","Server nicht erreichbar – lokal")}
+  catch(e){LASTERR=errTxt(e);setSync("local","Server-Fehler – lokal")}
   renderServer();
 }
 async function initSupa(){
@@ -515,6 +523,7 @@ function renderServer(){
   }
   st.textContent="verbunden";
   b.innerHTML=`<div class="sub">Angemeldet als <b style="color:#fff">${esc(SESSION.user.email)}</b><br>${esc(SUPA.url.replace("https://",""))}</div>
+   ${LASTERR?`<div class="alert" style="margin-top:10px">⚠ ${esc(LASTERR)}</div>`:""}
    <div class="kpis"><div class="kpi"><div class="l">Ausstehend</div><div class="v">${QUEUE.length}</div><div class="h">${QUEUE.length?"wird synchronisiert":"alles synchron"}</div></div></div>
    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
     <button class="btn blue sm" id="sSync">Jetzt synchronisieren</button>

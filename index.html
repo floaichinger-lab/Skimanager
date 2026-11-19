@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Skimanager</title>
+<style>
+:root{
+  --red:#FF5A4A; --red2:#ff7b6b; --blue:#2A2F5E; --blue2:#8B3A8F; --navy:#141a38; --mag:#A3255A;
+  --glass:rgba(255,255,255,.10); --glass2:rgba(255,255,255,.16); --stroke:rgba(255,255,255,.22);
+  --txt:#fff; --mut:rgba(255,255,255,.66); --mut2:rgba(255,255,255,.45);
+  --ok:#34c759; --warn:#ffcc00; --bad:#ff453a;
+  --r:22px;
+  --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Inter,Arial,sans-serif;
+  color:var(--txt);background:var(--navy);-webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+.bg{position:fixed;inset:0;z-index:-1;overflow:hidden;
+  background:linear-gradient(170deg,#1c2350 0%,#232859 38%,#4a2a68 66%,#8e2655 84%,#e8524a 100%)}
+.blob{position:absolute;border-radius:50%;filter:blur(70px);opacity:.75;animation:drift 22s ease-in-out infinite alternate}
+.b1{width:55vmax;height:55vmax;background:radial-gradient(circle,#FF5A4A 0%,rgba(255,90,74,0) 65%);bottom:-22vmax;left:-18vmax}
+.b2{width:55vmax;height:55vmax;background:radial-gradient(circle,#6b2f7e 0%,rgba(107,47,126,0) 65%);top:-20vmax;right:-15vmax;animation-delay:-8s}
+.b3{width:30vmax;height:30vmax;background:radial-gradient(circle,rgba(255,255,255,.35) 0%,rgba(255,255,255,0) 70%);top:40%;left:55%;animation-delay:-14s;opacity:.35}
+@keyframes drift{to{transform:translate(4vmax,3vmax) scale(1.08)}}
+@media (prefers-reduced-motion:reduce){.blob{animation:none}}
+
+.app{max-width:820px;margin:0 auto;padding:calc(var(--sat) + 18px) 16px calc(var(--sab) + 110px)}
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:6px 4px 14px}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);display:flex;align-items:center;gap:8px}
+h1{font-size:34px;line-height:1.05;font-weight:800;letter-spacing:-.02em;margin:4px 0 0}
+.sync{font-size:12px;color:var(--mut);padding:6px 10px;border-radius:999px;background:var(--glass);border:1px solid var(--stroke);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);white-space:nowrap}
+.sync b{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--warn);margin-right:6px;vertical-align:1px}
+.sync.cloud b{background:var(--ok)}
+
+.glass{background:var(--glass);border:1px solid var(--stroke);border-radius:var(--r);
+  backdrop-filter:blur(28px) saturate(180%);-webkit-backdrop-filter:blur(28px) saturate(180%);
+  box-shadow:0 10px 40px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.18)}
+.card{padding:16px;margin-bottom:14px}
+.card h2{font-size:20px;margin:0 0 12px;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.card h3,.sheet h3{font-size:13px;margin:14px 0 8px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.sub{color:var(--mut);font-size:13px}
+.grid{display:grid;gap:10px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}
+@media(max-width:520px){.g3{grid-template-columns:1fr 1fr}}
+label.f{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--mut);font-weight:600}
+input,select,textarea{
+  font:inherit;font-size:16px;color:#fff;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.18);
+  border-radius:12px;padding:10px 12px;outline:none;width:100%;-webkit-appearance:none;appearance:none}
+select{background-image:linear-gradient(45deg,transparent 50%,#fff 50%),linear-gradient(135deg,#fff 50%,transparent 50%);
+  background-position:calc(100% - 16px) 50%,calc(100% - 11px) 50%;background-size:5px 5px;background-repeat:no-repeat;padding-right:30px}
+select option{color:#000}
+input:focus,select:focus,textarea:focus{border-color:var(--blue2);box-shadow:0 0 0 3px rgba(139,58,143,.3)}
+input::placeholder,textarea::placeholder{color:var(--mut2)}
+input[type=range]{padding:0;height:28px;background:transparent;border:none}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:linear-gradient(90deg,#2A2F5E,#8B3A8F,#FF5A4A)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:#fff;margin-top:-10px;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+input[type=range]::-moz-range-track{height:6px;border-radius:3px;background:linear-gradient(90deg,#2A2F5E,#8B3A8F,#FF5A4A)}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#fff;border:none}
+
+.seg{display:flex;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:3px;gap:3px;overflow-x:auto;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button{flex:1;white-space:nowrap;border:0;background:transparent;color:var(--mut);font:600 14px/1 inherit;font-family:inherit;padding:9px 10px;border-radius:9px;cursor:pointer}
+.seg button.on{background:rgba(255,255,255,.92);color:#1c2350;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.07);color:#fff;font:600 13px/1 inherit;font-family:inherit;padding:8px 12px;border-radius:999px;cursor:pointer}
+.chip.on{background:var(--red);border-color:var(--red2);box-shadow:0 4px 14px rgba(255,90,74,.45)}
+.chip.salt.on{background:#fff;color:#1c2350;border-color:#fff;box-shadow:0 4px 14px rgba(255,255,255,.35)}
+.chip.blue.on{background:#3a3f78;border-color:#8a90d0;box-shadow:0 4px 14px rgba(139,58,143,.45)}
+
+.btn{border:0;cursor:pointer;font:700 15px/1 inherit;font-family:inherit;color:#fff;padding:13px 16px;border-radius:14px;background:linear-gradient(180deg,#ff6e5c,#e0423a);box-shadow:0 6px 20px rgba(255,90,74,.4),inset 0 1px 0 rgba(255,255,255,.3)}
+.btn.blue{border:1px solid rgba(255,255,255,.2);background:linear-gradient(180deg,#3a3f78,#232859);box-shadow:0 6px 20px rgba(139,58,143,.4),inset 0 1px 0 rgba(255,255,255,.3)}
+.btn.ghost{background:rgba(255,255,255,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.2)}
+.btn.sm{padding:9px 12px;font-size:13px;border-radius:11px}
+.btn.wide{width:100%}
+.btn:active{transform:scale(.98)}
+.iconbtn{width:36px;height:36px;border-radius:50%;border:1px solid var(--stroke);background:rgba(255,255,255,.14);color:#fff;font-size:22px;line-height:1;cursor:pointer;display:grid;place-items:center}
+
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+@media(max-width:520px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{padding:10px 12px;border-radius:16px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12)}
+.kpi .v{font-size:22px;font-weight:800;letter-spacing:-.02em}
+.kpi .l{font-size:11px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.kpi .h{font-size:11px;color:var(--mut2)}
+
+.rank{display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:18px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);margin-bottom:9px}
+.rank.top{background:linear-gradient(135deg,rgba(255,90,74,.28),rgba(139,58,143,.18));border-color:rgba(255,255,255,.3)}
+.ring{--p:0;flex:0 0 56px;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;
+  background:conic-gradient(var(--c,#fff) calc(var(--p)*1%),rgba(255,255,255,.12) 0)}
+.ring span{width:44px;height:44px;border-radius:50%;background:rgba(28,35,80,.9);display:grid;place-items:center;font-weight:800;font-size:16px}
+.rank .t{font-weight:700;font-size:16px}
+.rank .m{font-size:12.5px;color:var(--mut);margin-top:2px}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.tag{font-size:11.5px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.88)}
+.tag.g{background:rgba(52,199,89,.2);border-color:rgba(52,199,89,.45)}
+.tag.y{background:rgba(255,204,0,.18);border-color:rgba(255,204,0,.45)}
+.tag.r{background:rgba(255,69,58,.2);border-color:rgba(255,69,58,.45)}
+.tag.b{background:rgba(139,58,143,.22);border-color:rgba(139,58,143,.5)}
+
+.list .row{display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);margin-bottom:8px;cursor:pointer}
+.list .row:active{background:rgba(255,255,255,.12)}
+.badge{flex:0 0 46px;height:46px;border-radius:14px;display:grid;place-items:center;font-weight:800;font-size:12px;text-align:center;line-height:1.1;
+  background:linear-gradient(160deg,#FF5A4A,#A3255A);box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}
+.badge.k{background:linear-gradient(160deg,#8B3A8F,#2A2F5E)}
+.badge.s{background:linear-gradient(160deg,#ffffff,#c9d3e8);color:#1c2350}
+.row .main{flex:1;min-width:0}
+.row .t{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .m{font-size:12.5px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .r{text-align:right;font-size:12px;color:var(--mut)}
+.row .r b{display:block;font-size:17px;color:#fff}
+.tbar{position:relative;height:8px;border-radius:4px;background:linear-gradient(90deg,#6b74c8,#fff 65%,#FF5A4A);margin-top:7px;opacity:.9}
+.tbar i{position:absolute;top:-3px;height:14px;border-radius:5px;border:2px solid #fff;background:rgba(255,90,74,.55)}
+.tbar u{position:absolute;top:-5px;width:2px;height:18px;background:#ffcc00;border-radius:1px}
+.empty{padding:26px 12px;text-align:center;color:var(--mut);font-size:14px}
+
+.steps{counter-reset:s;margin:0;padding:0;list-style:none}
+.steps li{counter-increment:s;position:relative;padding:8px 0 8px 36px;font-size:14px;color:rgba(255,255,255,.9);border-bottom:1px solid rgba(255,255,255,.08)}
+.steps li:last-child{border-bottom:0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:7px;width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.14);display:grid;place-items:center;font-size:12px;font-weight:800}
+.testpair{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:8px 0 4px}
+.tp{padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14)}
+.tp .k{font-size:11px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.tp .n{font-weight:800;font-size:16px;margin-top:2px}
+.tp .d{font-size:12px;color:var(--mut)}
+.tp.ctr{border-style:dashed;border-color:rgba(255,204,0,.6)}
+.note{font-size:12.5px;color:var(--mut);margin-top:8px;line-height:1.45}
+.alert{padding:10px 12px;border-radius:14px;font-size:13.5px;margin-top:10px;background:rgba(255,204,0,.14);border:1px solid rgba(255,204,0,.4)}
+
+/* Tab bar */
+nav.tabs{background:rgba(16,20,48,.86)!important;border-color:rgba(255,255,255,.28)!important;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--sab) + 12px);z-index:20;display:flex;gap:4px;padding:6px;border-radius:28px;width:min(440px,calc(100% - 24px))}
+nav.tabs button{flex:1;border:0;background:transparent;color:rgba(255,255,255,.92);font:700 11.5px/1.1 inherit;font-family:inherit;padding:7px 4px 6px;border-radius:22px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
+nav.tabs svg{width:26px;height:26px;stroke-width:2.3}
+nav.tabs button.on{color:#fff;background:linear-gradient(180deg,#ff6e5c,#e0423a);box-shadow:0 4px 14px rgba(255,90,74,.45),inset 0 1px 0 rgba(255,255,255,.35)}
+nav.tabs button.on svg{color:#fff}
+.view{display:none;animation:fade .25s ease}
+.view.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* Sheet */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:40;opacity:0;pointer-events:none;transition:opacity .25s}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,105%);z-index:50;width:min(640px,100%);max-height:92vh;overflow:auto;
+  border-radius:28px 28px 0 0;padding:10px 18px calc(var(--sab) + 22px);transition:transform .32s cubic-bezier(.2,.9,.25,1);
+  background:rgba(30,34,72,.82)}
+.sheet.on{transform:translate(-50%,0)}
+.grab{width:40px;height:5px;border-radius:3px;background:rgba(255,255,255,.35);margin:2px auto 10px}
+.sheet h2{margin:0 0 12px;font-size:20px;display:flex;justify-content:space-between;align-items:center}
+.sheet .actions{display:flex;gap:8px;margin-top:16px}
+.sheet .actions .btn{flex:1}
+.toast{position:fixed;left:50%;top:calc(var(--sat) + 14px);transform:translate(-50%,-140%);z-index:60;padding:10px 16px;border-radius:999px;font-size:14px;font-weight:600;transition:transform .3s}
+.toast.on{transform:translate(-50%,0)}
+.hist{width:100%;height:auto;display:block;margin-top:8px}
+.searchbar{display:flex;gap:8px;margin-bottom:10px}
+.small{font-size:12px;color:var(--mut)}
+a{color:#9dbcff}
+.live{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);margin-top:10px;font-size:13px}
+.live .dot{flex:0 0 9px;height:9px;border-radius:50%;background:var(--mut2)}
+.live.ok .dot{background:var(--ok);box-shadow:0 0 8px var(--ok);animation:pulse 2s infinite}
+.live.err .dot{background:var(--bad)}
+.live.load .dot{background:var(--warn)}
+@keyframes pulse{50%{opacity:.4}}
+.live .tx{flex:1;min-width:0}
+.locrow{display:flex;gap:8px;align-items:flex-end}
+.locrow label{flex:1}
+.src{font-style:normal;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;margin-left:4px;vertical-align:1px;text-transform:uppercase;letter-spacing:.04em}
+.src.sl{background:rgba(52,199,89,.22);color:#8ff0a8}
+.src.sm{background:rgba(255,90,74,.25);color:#ffb3a8}
+.src.se{background:rgba(255,255,255,.12);color:var(--mut)}
+.hourly{width:100%;height:auto;display:block;margin-top:10px}
+#grindList .row .m{white-space:normal}
+.trow{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);margin-bottom:8px}
+.tpl{flex:0 0 34px;height:34px;border-radius:10px;display:grid;place-items:center;font-weight:800;background:linear-gradient(160deg,#ff6e5c,#A3255A)}
+.trow:first-child .tpl{background:linear-gradient(160deg,#ffd76a,#ff8a3d);color:#2a1a00}
+.tbtns{display:flex;flex-direction:column;gap:4px}
+.tbtns .iconbtn{width:30px;height:30px;font-size:15px}
+.tbtns .iconbtn:disabled{opacity:.3}
+.trow .chip{padding:7px 11px;min-width:38px}
+.prec{margin-top:12px;padding:12px;border-radius:16px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14)}
+.prec .hd{display:flex;justify-content:space-between;align-items:baseline;font-weight:700;font-size:15px}
+.prec .sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.prec .sum div{font-size:11px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.prec .sum b{display:block;font-size:18px;color:#fff;text-transform:none;letter-spacing:0}
+.pdays{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:6px;margin-top:10px}
+.pday{padding:8px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);font-size:12px;color:var(--mut)}
+.pday.race{border-color:#ff7b6b;background:rgba(255,90,74,.16)}
+.pday b{display:block;color:#fff;font-size:13px}
+</style>
+</head>
+<body>
+<div class="bg"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+
+<div class="app">
+  <header class="top">
+    <div>
+      <div class="eyebrow"><span id="eyebrow">Prognose &amp; Skitest</span></div>
+      <h1 id="title">Skimanager</h1>
+    </div>
+    <div class="sync" id="sync"><b></b><span>Lokal</span></div>
+  </header>
+
+  <!-- ============ PROGNOSE ============ -->
+  <section class="view on" id="v-prog">
+    <div class="glass card">
+      <h2>Athletin &amp; Disziplin</h2>
+      <div class="grid g2">
+        <label class="f">Athlet/in<select id="pAth"></select></label>
+        <label class="f">Disziplin<select id="pDisc">
+          <option>Skating</option><option>Klassisch</option><option>Sprung</option>
+        </select></label>
+      </div>
+    </div>
+
+    <div class="glass card">
+      <h2>Wetter vor Ort <span class="sub" id="estHint"></span></h2>
+      <div class="locrow">
+        <label class="f">Ort<input id="cOrt" list="orte" placeholder="Ort suchen, z. B. Oberhof" enterkeyhint="search"></label>
+        <button class="btn sm" id="locSearch" aria-label="Ort suchen">Suchen</button>
+        <button class="btn blue sm" id="locGps" aria-label="Aktueller Standort">📍</button>
+      </div>
+      <div class="grid g2" style="margin-top:10px">
+        <label class="f">Renntag<input id="cDate" type="date"></label>
+        <label class="f">Startzeit<input id="cTime" type="time" step="3600"></label>
+      </div>
+      <div class="live" id="liveBox"><span class="dot"></span><span class="tx" id="liveTx">Noch keine Live-Daten – Ort suchen oder 📍 tippen.</span><button class="btn ghost sm" id="liveRefresh">↻</button></div>
+      <svg class="hourly" id="hourly" viewBox="0 0 340 90" aria-label="Temperaturverlauf am Renntag"></svg>
+      <div class="prec" id="precBox" style="display:none"></div>
+      <h3>Werte <span class="small" style="text-transform:none;letter-spacing:0">– Live-Daten, deine Eingaben haben Vorrang</span></h3>
+      <div class="grid g3">
+        <label class="f"><span>Luft jetzt °C<em class="src" data-s="ta"></em></span><input id="cTa" type="number" step="0.5" inputmode="decimal"></label>
+        <label class="f"><span>Luft Start °C<em class="src" data-s="tar"></em></span><input id="cTaR" type="number" step="0.5" inputmode="decimal"></label>
+        <label class="f"><span>Schnee °C<em class="src" data-s="ts"></em></span><input id="cTs" type="number" step="0.5" inputmode="decimal" placeholder="Messung"></label>
+      </div>
+      <label class="f" style="margin-top:12px"><span>Luftfeuchte Start: <span id="rhV" style="color:#fff"></span><em class="src" data-s="rh"></em></span><input id="cRh" type="range" min="20" max="100" step="1"></label>
+      <h3>Schneeart <span class="small" style="text-transform:none;letter-spacing:0">(bis zu 2)</span> <span class="small" id="snowHint" style="text-transform:none;letter-spacing:0"></span></h3><div class="chips" id="cSnow"></div><div class="chips" id="cSalzW" style="margin-top:7px"></div>
+      <h3>Himmel zum Start <em class="src" data-s="sky"></em></h3><div class="chips" id="cSky"></div>
+      <h3>Niederschlag zum Start <em class="src" data-s="prec"></em></h3><div class="chips" id="cPrec"></div>
+      <button class="btn ghost sm" id="resetMan" style="margin-top:12px">Eigene Eingaben zurücksetzen → Live-Werte</button>
+      <div class="kpis" id="kpis"></div>
+      <div class="note">Live-Wetter: Open-Meteo (Modelldaten, stündlich, bis 16 Tage). Schneetemperatur: deine Messung → sonst Modell-Oberflächentemperatur → sonst Schätzung aus Luft, Bewölkung und Niederschlag.</div>
+    </div>
+
+    <div class="glass card">
+      <h2>Prognose <span class="sub" id="progMeta"></span></h2>
+      <div id="progList"></div>
+    </div>
+
+    <div class="glass card">
+      <h2>Vorschlag Skitest</h2>
+      <div id="testBox"></div>
+    </div>
+  </section>
+
+  <!-- ============ SKIS ============ -->
+  <section class="view" id="v-skis">
+    <div class="glass card">
+      <h2>Skidatenbank <button class="iconbtn" id="addSki" aria-label="Ski hinzufügen">+</button></h2>
+      <div class="searchbar"><input id="sQ" placeholder="Suche: Nummer, Modell, Schliff …"></div>
+      <div class="grid g3" style="margin-bottom:12px">
+        <select id="sAth"></select>
+        <select id="sDisc"><option value="">Alle Disziplinen</option><option>Skating</option><option>Klassisch</option><option>Sprung</option></select>
+        <select id="sStat"><option value="">Alle Status</option><option>aktiv</option><option>Test</option><option>Reserve</option><option>ausgemustert</option></select>
+      </div>
+      <div class="list" id="skiList"></div>
+    </div>
+  </section>
+
+  <!-- ============ RENNEN ============ -->
+  <section class="view" id="v-race">
+    <div class="glass card">
+      <h2>Renn- &amp; Testdaten <button class="iconbtn" id="addRace" aria-label="Eintrag hinzufügen">+</button></h2>
+      <div class="grid g2" style="margin-bottom:12px">
+        <select id="rAth"></select>
+        <select id="rTyp"><option value="">Rennen &amp; Tests</option><option>Rennen</option><option value="WC">– Rennen WC</option><option value="COC">– Rennen COC</option><option value="WM">– Rennen WM</option><option>Test</option><option>Training</option></select>
+      </div>
+      <select id="rSki" style="margin-bottom:8px"></select>
+      <div class="chips" id="rSkiChips" style="margin-bottom:8px"></div>
+      <div id="rSkiSum"></div>
+      <div class="list" id="raceList"></div>
+    </div>
+  </section>
+
+  <!-- ============ MEHR ============ -->
+  <section class="view" id="v-more">
+    <div class="glass card" id="srvCard">
+      <h2>Server <span class="sub" id="srvState"></span></h2>
+      <div id="srvBody"></div>
+    </div>
+    <div class="glass card">
+      <h2>Datenspeicher</h2>
+      <div class="sub" id="storeInfo"></div>
+      <div class="kpis" id="dbKpis"></div>
+    </div>
+    <div class="glass card">
+      <h2>Export / Import</h2>
+      <div class="sub">Sicherung als JSON. „Kopieren“ legt alle Ski und Renndaten in die Zwischenablage; zum Import JSON einfügen.</div>
+      <div style="display:flex;gap:8px;margin:12px 0">
+        <button class="btn blue sm" id="expBtn">JSON kopieren</button>
+        <button class="btn ghost sm" id="impBtn">Import aus Feld</button>
+      </div>
+      <textarea id="ioArea" rows="6" placeholder="JSON hier einfügen …"></textarea>
+    </div>
+    <div class="glass card">
+      <h2>Schliffe <span class="sub">Grind details 26</span></h2>
+      <div class="chips" id="gFilter" style="margin-bottom:10px"></div>
+      <div class="list" id="grindList"></div>
+      <div class="note">★ = meistgenutzt. Einsatzbereich (°C Schneetemperatur, Schneearten, Feuchte) ist aus den Beschreibungen abgeleitet – antippen zum Anpassen. Änderungen gelten für das ganze Team.</div>
+    </div>
+    <div class="glass card">
+      <h2>Beläge</h2>
+      <div class="list">
+        <div class="row" style="cursor:default"><div class="badge k">S1</div><div class="main"><div class="t">Kalt</div><div class="m">Belag K9000</div></div></div>
+        <div class="row" style="cursor:default"><div class="badge k">S2</div><div class="main"><div class="t">Uni</div><div class="m">Belag K7000</div></div></div>
+        <div class="row" style="cursor:default"><div class="badge">SX</div><div class="main"><div class="t">Uni/Warm</div><div class="m">Belag K7000</div></div></div>
+        <div class="row" style="cursor:default"><div class="badge">S3</div><div class="main"><div class="t">Warm</div><div class="m">Belag K9002 Redbase</div></div></div>
+      </div>
+      <div class="note">Im Ski-Formular als Auswahl hinterlegt; erscheint in Skiliste, Prognose und Testvorschlag und ist durchsuchbar (z. B. „K9002“).</div>
+    </div>
+    <div class="glass card">
+      <h2>So rechnet die Prognose</h2>
+      <ol class="steps">
+        <li><b>Profil-Passung (Grundwert):</b> Einsatzbereich des Skis – Schneetemperatur (38 %), Schneeart (20 %), Feuchte (12 %) – plus <b>Schliff (30 %)</b>: Temperaturfenster, Schneeart und Feuchte des Schliffs aus der Schliff-DB. Untypische Belag-Kombination (z. B. A36 auf S1) −15 %, meistgenutzte Schliffe (★) leichter Bonus.</li>
+        <li><b>Bewertungen → Index 1–10:</b> Test: Platz 1 = 10, letzter Platz = 4 (dazwischen linear). Wettkampf/Training: Schulnote 1 = 10 · 2 = 8,5 · 3 = 7 · 4 = 5,5 · 5 = 4 · 6 = 2,5. „Vom Fuß“: ++ +0,5 · + +0,25 · 0 ±0 · - −0,5.</li>
+        <li><b>Salz:</b> Ist „bearbeitet mit Salz“ gesetzt, verlieren Ski/Schliffe ohne Salz-Markierung 30 % im Schneeart-Anteil; Renn-/Testeinträge mit gleichem Salz-Zustand zählen stärker. Vorbelegt mit Salz: RU15, RUW10 (glasige Spur laut Grind-Liste).</li>
+        <li><b>Rennhistorie:</b> Alle Renn- und Testeinträge des Skis werden nach Ähnlichkeit gewichtet – Schneetemperatur (±3 °C), gleiche Schneeart, gleiche Feuchteklasse und Aktualität (ältere Daten zählen weniger).</li>
+        <li><b>Mischung:</b> Je mehr ähnliche Vergleichsdaten vorliegen, desto stärker zählt die Historie (bis 65 %). Daraus ergibt sich die Sicherheit gering / mittel / hoch.</li>
+        <li><b>Testvorschlag:</b> Top 3 nach Prognose + ein Kontrastski (anderer Schliff oder Temperaturbereich in Richtung des Wettertrends) zur Absicherung.</li>
+      </ol>
+    </div>
+  </section>
+</div>
+
+<nav class="tabs glass" id="tabs">
+  <button class="on" data-v="prog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 1 0-1.4-8.8A6 6 0 1 0 6 16.5"/><path d="M12 13v8M9 18l3 3 3-3"/></svg>Prognose</button>
+  <button data-v="skis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21 17 3.5a1.6 1.6 0 0 1 2.6 1.8L7 22"/><path d="M9 21 20.5 7"/></svg>Ski</button>
+  <button data-v="race"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4"/><path d="M4 4h13l-2 4 2 4H4"/></svg>Renndaten</button>
+  <button data-v="more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Mehr</button>
+</nav>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet glass" id="sheet"><div class="grab"></div><div id="sheetBody"></div></div>
+<div class="toast glass" id="toast"></div>
+
+<datalist id="orte">
+  <option>Oberhof</option><option>Klingenthal</option><option>Schonach</option><option>Oberstdorf</option><option>Ramsau am Dachstein</option>
+  <option>Seefeld</option><option>Predazzo</option><option>Planica</option><option>Ruka</option><option>Lillehammer</option>
+  <option>Trondheim</option><option>Lahti</option><option>Otepää</option><option>Hinterzarten</option><option>Zakopane</option><option>Lake Placid</option>
+</datalist>
+
+<script>
+(()=>{
+"use strict";
+/* ---------------- Konstanten ---------------- */
+const SNOW=[["neu","Neuschnee"],["fein","Feinkörnig"],["kunst","Kunstschnee"],["grob","Grobkörnig/Altschnee"],["nass","Nassschnee"],["eis","Eisig"]];
+const SNOWN=Object.fromEntries(SNOW);
+const snowsOf=o=>[o.snow??o.schnee,o.snow2??o.schnee2].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i);
+const snowTxt=o=>snowsOf(o).map(k=>SNOWN[k]).join(" + ")+(o.salz?" · Salz":"");
+const salzChip=(id,on)=>`<button type="button" class="chip salt ${on?"on":""}" id="${id}">🧂 bearbeitet mit Salz</button>`;
+const bindToggle=id=>{const b=$("#"+id);if(b)b.onclick=()=>b.classList.toggle("on")};
+const isOn=id=>!!$("#"+id)?.classList.contains("on");
+const snowFit=(list,cs)=>{const k=cs.filter(x=>list.includes(x)).length;return k===cs.length?1:k>0?0.75:0.45};
+const SKY=[["klar","Klar"],["wolkig","Wolkig"],["bedeckt","Bedeckt"],["nebel","Nebel"]];
+const PREC=[["kein","Kein"],["schnee","Schneefall"],["regen","Regen"]];
+const HUM=["trocken","mittel","feucht"];
+const BASES={S1:{n:"Kalt",mat:"K9000"},S2:{n:"Uni",mat:"K7000"},SX:{n:"Uni/Warm",mat:"K7000"},S3:{n:"Warm",mat:"K9002 Redbase"}};
+/* Schliffe aus Grind_details26.xlsx; tMin/tMax/schnee/feuchte = abgeleitetes Einsatzprofil (unter „Mehr“ anpassbar) */
+const GRINDS_DEF=[
+ {name:"A1",maker:"Nordic Tuning",cond:"Kalt",details:"Sehr kalter, trockener Schnee",rem:"Speziell für sehr kalten und/oder Kunstschnee",most:"",bases:["S1"],tMin:-25,tMax:-10,schnee:["fein","kunst"],feuchte:"trocken"},
+ {name:"FF3B",maker:"Rossignol",cond:"Kalt",details:"Kalter und sehr kalter Schnee + kalter Neuschnee",rem:"Auch gut bei frischem Neuschnee. Feinere Version von FF3",most:"",bases:["S1"],tMin:-20,tMax:-7,schnee:["neu","fein","kunst"],feuchte:"trocken"},
+ {name:"FF3",maker:"Rossignol",cond:"Kalt",details:"Gut bei allen kalten und mittelkalten Bedingungen",rem:"Vor RC5 meistgenutzt auf S1. Weiterhin stark bei kalt/mittelkalt",most:"",bases:["S1"],tMin:-16,tMax:-5,schnee:["fein","kunst","neu"],feuchte:"trocken"},
+ {name:"RC5",maker:"Rossignol",cond:"Kalt",details:"Universal kalt, großer Schneebereich",rem:"Sehr stark auf S1 und S2",most:"X",bases:["S1","S2"],tMin:-18,tMax:-4,schnee:["fein","kunst","neu","grob"],feuchte:"trocken"},
+ {name:"A6 Blue",maker:"Nordic Tuning",cond:"Universal",details:"Großer Bereich, stark bei allen Schneearten",rem:"Meist auf S2, auch S1, SX, S3. MUST HAVE",most:"X",bases:["S1","S2","SX","S3"],tMin:-15,tMax:-1,schnee:["neu","fein","kunst","grob","nass","eis"],feuchte:"mittel"},
+ {name:"RU18",maker:"Rossignol",cond:"Universal",details:"Universal, großer Bereich",rem:"Neu, im Weltcup 23/24 erprobt. „Rossignol-A6“",most:"X",bases:[],tMin:-14,tMax:-2,schnee:["neu","fein","kunst","grob"],feuchte:"mittel"},
+ {name:"RU15",salz:true,maker:"Rossignol",cond:"Universal",details:"Universal bis universal-nass",rem:"Beste Ergebnisse bei nassem fallendem Neuschnee oder glasiger Spur",most:"X",bases:[],tMin:-6,tMax:0,schnee:["neu","nass","eis","grob"],feuchte:"feucht"},
+ {name:"RU8",maker:"Rossignol",cond:"Universal",details:"Universal, großer Bereich",rem:"Löst RU2 ab – größerer Einsatzbereich",most:"X",bases:[],tMin:-12,tMax:-2,schnee:["fein","kunst","grob","neu"],feuchte:"mittel"},
+ {name:"RU8+",maker:"Rossignol",cond:"Universal",details:"Universal, großer Bereich",rem:"Weiterentwicklung RU8, weiter testen",most:"Test",bases:[],tMin:-12,tMax:-2,schnee:["fein","kunst","grob","neu"],feuchte:"mittel"},
+ {name:"RUW6",maker:"Rossignol",cond:"Universal",details:"Universal bis universal-nass",rem:"Alter Name „JO6“. Universal-nass, feiner Schnee",most:"X",bases:[],tMin:-6,tMax:0,schnee:["neu","fein","grob","nass"],feuchte:"feucht"},
+ {name:"RUW10",salz:true,maker:"Rossignol",cond:"Nass",details:"Universal-nass bis nass",rem:"Universal-nass und glasig",most:"X",bases:[],tMin:-4,tMax:0,schnee:["nass","eis","grob"],feuchte:"feucht"},
+ {name:"RUW1",maker:"Rossignol",cond:"Nass",details:"Universal-nass bis nass",rem:"XC-Weltcup/Junioren; im Biathlon schwächer – RU15/RUW6/RUW10 bevorzugen",most:"",bases:[],tMin:-4,tMax:0,schnee:["nass","grob"],feuchte:"feucht"},
+ {name:"A11",maker:"Nordic Tuning",cond:"Nass",details:"Alle Arten Nassschnee, großer Bereich",rem:"Sehr stark auf S2 und S3",most:"",bases:["S2","S3"],tMin:-4,tMax:0,schnee:["nass","grob","neu","eis"],feuchte:"feucht"},
+ {name:"A36",maker:"Nordic Tuning",cond:"Nass",details:"Sehr nasser Schnee",rem:"Speziell sehr nass, auf S3/SX. MUST HAVE FÜR NASS",most:"X",bases:["S3","SX"],tMin:-1.5,tMax:0,schnee:["nass"],feuchte:"feucht"},
+ {name:"RW1",maker:"Rossignol",cond:"Nass",details:"Nass",rem:"Neu. Für Regen/sehr nassen Schnee, grobes Korn",most:"",bases:[],tMin:-1,tMax:0,schnee:["nass","grob"],feuchte:"feucht"},
+ {name:"RW7",maker:"Rossignol",cond:"Nass",details:"Nass",rem:"Neu",most:"",bases:[],tMin:-2,tMax:0,schnee:["nass"],feuchte:"feucht"},
+ {name:"RW10",maker:"Rossignol",cond:"Nass",details:"Nass, tiefere Struktur",rem:"Neu, tiefer für Nassschnee. MUST HAVE FÜR NASS",most:"X",bases:[],tMin:-2,tMax:0,schnee:["nass","grob"],feuchte:"feucht"}];
+const gid=n=>String(n).replace(/[^\w\-.~:@+]/g,"_");
+function grinds(){const ov=Object.fromEntries((S.grinds||[]).map(g=>[g.id,g]));
+  return GRINDS_DEF.map(g=>{const o=ov[gid(g.name)];return o?{...g,tMin:o.tMin??g.tMin,tMax:o.tMax??g.tMax,schnee:o.schnee||g.schnee,feuchte:o.feuchte||g.feuchte,salz:o.salz??g.salz,edited:true}:g})}
+const grindOf=n=>n?grinds().find(g=>g.name.toLowerCase()===String(n).trim().toLowerCase()):null;
+const baseTxt=b=>BASES[b]?`${b} ${BASES[b].n} · ${BASES[b].mat}`:(b||"");
+/* ---------------- Helfer ---------------- */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const num=v=>{if(v===""||v==null)return null;const n=parseFloat(String(v).replace(",","."));return isFinite(n)?n:null};
+const r1=n=>Math.round(n*10)/10;
+const fmtT=n=>n==null?"–":(n>0?"+":"")+r1(n).toFixed(1).replace(".",",")+" °C";
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const today=()=>new Date().toISOString().slice(0,10);
+const fmtD=d=>{if(!d)return"";const [y,m,t]=d.split("-");return `${t}.${m}.${y}`};
+const humClass=rh=>rh<60?0:rh<=85?1:2;
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+function toast(t){const el=$("#toast");el.textContent=t;el.classList.add("on");clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove("on"),2200)}
+
+/* ---------------- Datenspeicher ---------------- */
+const S={mode:"local",skis:[],races:[],grinds:[],db:null};
+function loadLocal(){S.skis=LS.get("sm_skis",[]);S.races=LS.get("sm_races",[]);S.grinds=LS.get("sm_grinds",[])}
+function saveLocal(){LS.set("sm_skis",S.skis);LS.set("sm_races",S.races);LS.set("sm_grinds",S.grinds)}
+function clean(o){const c={};for(const k in o){if(k!=="id"&&o[k]!==undefined)c[k]=o[k]}return c}
+/* Server-Zugang (Supabase). Hier fest eintragen – oder unter „Mehr → Server“ pro Gerät. */
+const SUPA_URL="";      // z. B. "https://abcd1234.supabase.co"
+const SUPA_KEY="";      // „anon public“-Schlüssel
+const COLLS=["skis","races","grinds"];
+let SUPA=Object.assign({url:SUPA_URL,key:SUPA_KEY},LS.get("sm_supa",{}));
+let sb=null,SESSION=null,SUB=null,QUEUE=LS.get("sm_queue",[]),FLUSHING=false;
+function enqueue(op,c,id,data){
+  QUEUE=QUEUE.filter(q=>!(q.c===c&&q.id===id));QUEUE.push({op,c,id,data});LS.set("sm_queue",QUEUE);
+}
+async function flushQueue(){
+  if(!sb||!SESSION||FLUSHING||!QUEUE.length){renderServer();return}
+  FLUSHING=true;
+  try{
+    while(QUEUE.length){const q=QUEUE[0];
+      const r=q.op==="del"?await sb.from(q.c).delete().eq("id",q.id)
+        :await sb.from(q.c).upsert({id:q.id,data:q.data,updated_at:new Date().toISOString()});
+      if(r.error)throw r.error;
+      QUEUE.shift();LS.set("sm_queue",QUEUE);}
+    setSync("cloud","Server · synchron");
+  }catch(e){setSync("local",`Server offline · ${QUEUE.length} ausstehend`)}
+  FLUSHING=false;renderServer();
+}
+async function put(coll,obj){
+  const arr=S[coll];const i=arr.findIndex(x=>x.id===obj.id);
+  if(i>=0)arr[i]=obj;else arr.push(obj);
+  if(S.mode==="supa"){saveLocal();enqueue("up",coll,obj.id,clean(obj));renderAll();flushQueue();return true}
+  if(S.mode==="cloud"){
+    try{await S.db.collection(coll).doc(obj.id).set(clean(obj))}
+    catch(e){toast(e&&e.code==="invalid_argument"?"Keine Schreibrechte":"Speichern fehlgeschlagen");return false}
+  }else saveLocal();
+  renderAll();return true;
+}
+async function del(coll,id){
+  S[coll]=S[coll].filter(x=>x.id!==id);
+  if(S.mode==="supa"){saveLocal();enqueue("del",coll,id);renderAll();flushQueue();return}
+  if(S.mode==="cloud"){try{await S.db.collection(coll).doc(id).delete()}catch(e){toast("Löschen fehlgeschlagen")}}
+  else saveLocal();
+  renderAll();
+}
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement("script");s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s)})}
+async function pullAll(){
+  for(const c of COLLS){
+    const {data,error}=await sb.from(c).select("id,data");
+    if(error)throw error;
+    const pend=new Map(QUEUE.filter(q=>q.c===c).map(q=>[q.id,q]));
+    let arr=data.map(r=>Object.assign({id:r.id},r.data)).filter(o=>!(pend.get(o.id)?.op==="del"));
+    pend.forEach(q=>{if(q.op==="up"){arr=arr.filter(o=>o.id!==q.id);arr.push(Object.assign({id:q.id},q.data))}});
+    S[c]=arr;
+  }
+  saveLocal();renderAll();
+}
+function subscribe(){
+  if(SUB)return;
+  SUB=sb.channel("skimanager").on("postgres_changes",{event:"*",schema:"public"},p=>{
+    const c=p.table;if(!COLLS.includes(c))return;
+    if(p.eventType==="DELETE"){S[c]=S[c].filter(x=>x.id!==p.old.id)}
+    else{const o=Object.assign({id:p.new.id},p.new.data);const i=S[c].findIndex(x=>x.id===o.id);if(i>=0)S[c][i]=o;else S[c].push(o)}
+    saveLocal();renderAll();
+  }).subscribe();
+}
+async function startSupa(){
+  setSync("cloud","Server · verbinde …");
+  try{await flushQueue();await pullAll();subscribe();setSync("cloud",QUEUE.length?`Server · ${QUEUE.length} ausstehend`:"Server · synchron")}
+  catch(e){setSync("local","Server nicht erreichbar – lokal")}
+  renderServer();
+}
+async function initSupa(){
+  if(!SUPA.url||!SUPA.key)return false;
+  S.mode="supa";setSync("local","Server · lade …");
+  try{if(!window.supabase)await loadScript("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js")}
+  catch(e){setSync("local","Server-Bibliothek nicht ladbar – lokal");renderServer();return true}
+  try{sb=window.supabase.createClient(SUPA.url,SUPA.key,{auth:{persistSession:true,autoRefreshToken:true}})}
+  catch(e){sb=null;setSync("local","Server-Adresse ungültig");renderServer();return true}
+  const {data}=await sb.auth.getSession();SESSION=data.session;
+  sb.auth.onAuthStateChange((ev,s)=>{const was=!!SESSION;SESSION=s;if(s&&!was)startSupa();if(!s){setSync("local","Server · abgemeldet");renderServer()}});
+  if(SESSION)await startSupa();else{setSync("local","Server · bitte anmelden");renderServer()}
+  window.addEventListener("online",flushQueue);
+  setInterval(()=>{if(QUEUE.length)flushQueue()},60000);
+  return true;
+}
+function renderServer(){
+  const b=$("#srvBody");if(!b)return;
+  const st=$("#srvState");
+  if(!SUPA.url||!SUPA.key){
+    st.textContent="nicht eingerichtet";
+    b.innerHTML=`${window.top!==window?`<div class="alert" style="margin:0 0 10px">In der claude.ai-Ansicht ist die Server-Anbindung blockiert – nutze dafür die Version auf GitHub Pages.</div>`:""}<div class="sub">Mit einem Supabase-Projekt liegen alle Ski, Tests und Renndaten auf einem Server und sind auf allen Geräten des Teams gleich.</div>
+     <label class="f" style="margin-top:10px">Project URL<input id="sUrl" placeholder="https://xxxx.supabase.co" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+     <label class="f" style="margin-top:8px">anon public key<input id="sKey" placeholder="eyJhbGciOi…" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+     <button class="btn wide" id="sSave" style="margin-top:12px">Verbinden</button>`;
+    $("#sSave").onclick=()=>{const u=$("#sUrl").value.trim().replace(/\/+$/,""),k=$("#sKey").value.trim();
+      if(!/^https:\/\/.+/.test(u)||k.length<20){toast("URL oder Schlüssel unvollständig");return}
+      LS.set("sm_supa",{url:u,key:k});location.reload()};
+    return;
+  }
+  if(!sb){st.textContent="Fehler";b.innerHTML=`<div class="sub">Verbindung zu ${esc(SUPA.url)} nicht möglich (in der claude.ai-Ansicht blockiert, sonst Internet prüfen).</div>${srvReset()}`;bindReset();return}
+  if(!SESSION){
+    st.textContent="nicht angemeldet";
+    b.innerHTML=`<div class="sub">${esc(SUPA.url.replace("https://",""))}</div>
+     <label class="f" style="margin-top:10px">E-Mail<input id="lMail" type="email" autocomplete="username" autocapitalize="off"></label>
+     <label class="f" style="margin-top:8px">Passwort<input id="lPw" type="password" autocomplete="current-password"></label>
+     <button class="btn wide" id="lGo" style="margin-top:12px">Anmelden</button>
+     ${QUEUE.length?`<div class="note">${QUEUE.length} Änderungen warten auf Upload.</div>`:""}${srvReset()}`;
+    $("#lGo").onclick=async()=>{const {error}=await sb.auth.signInWithPassword({email:$("#lMail").value.trim(),password:$("#lPw").value});
+      if(error)toast(error.message.includes("Invalid")?"E-Mail oder Passwort falsch":"Anmeldung fehlgeschlagen");else toast("Angemeldet")};
+    bindReset();return;
+  }
+  st.textContent="verbunden";
+  b.innerHTML=`<div class="sub">Angemeldet als <b style="color:#fff">${esc(SESSION.user.email)}</b><br>${esc(SUPA.url.replace("https://",""))}</div>
+   <div class="kpis"><div class="kpi"><div class="l">Ausstehend</div><div class="v">${QUEUE.length}</div><div class="h">${QUEUE.length?"wird synchronisiert":"alles synchron"}</div></div></div>
+   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+    <button class="btn blue sm" id="sSync">Jetzt synchronisieren</button>
+    <button class="btn ghost sm" id="sUp">Alle Daten dieses Geräts hochladen</button>
+    <button class="btn ghost sm" id="sOut">Abmelden</button>
+   </div>${srvReset()}`;
+  $("#sSync").onclick=async()=>{await flushQueue();try{await pullAll();toast("Synchronisiert")}catch(e){toast("Server nicht erreichbar")}};
+  $("#sUp").onclick=()=>{let n=0;COLLS.forEach(c=>S[c].forEach(o=>{enqueue("up",c,o.id,clean(o));n++}));flushQueue();toast(n+" Datensätze werden hochgeladen")};
+  $("#sOut").onclick=async()=>{await sb.auth.signOut()};
+  bindReset();
+}
+const srvReset=()=>`<button class="btn ghost sm" id="sReset" style="margin-top:10px">Server-Einstellung auf diesem Gerät entfernen</button>`;
+function bindReset(){const r=$("#sReset");if(r)r.onclick=()=>confirmDel("die Server-Verbindung auf diesem Gerät (Daten auf dem Server bleiben erhalten)",async()=>{try{localStorage.removeItem("sm_supa")}catch(e){}location.reload()})}
+function setSync(mode,txt){if(!$("#sync"))return;const el=$("#sync");el.className="sync"+(mode==="cloud"?" cloud":"");el.querySelector("span").textContent=txt}
+async function initDb(){
+  loadLocal();setSync("local","Lokal");renderAll();
+  if(await initSupa())return;
+  renderServer();
+  if(!window.claude||typeof window.claude.use!=="function")return;
+  let db=null;try{db=await window.claude.use("db")}catch(e){db=null}
+  if(!db)return;
+  S.db=db;setSync("cloud","Verbinde …");
+  const got={skis:false,races:false};
+  const timer=setTimeout(()=>{if(!got.skis||!got.races)setSync("local","Offline – evtl. veraltet")},10000);
+  ["skis","races","grinds"].forEach(c=>{
+    db.collection(c).onSnapshot(snap=>{
+      if(S.mode!=="cloud"){S.mode="cloud";}
+      S[c]=snap.docs.map(d=>Object.assign({id:d.id},d.data()));
+      if(!snap.metadata.fromCache){got[c]=true;if(got.skis&&got.races){clearTimeout(timer);setSync("cloud","Team-Datenbank")}}
+      renderAll();
+    },err=>{clearTimeout(timer);if(S.mode!=="cloud"){S.db=null;loadLocal();setSync("local","Lokal")}else setSync("local","Verbindung getrennt");renderAll()});
+  });
+}
+
+/* ---------------- Bedingungen ---------------- */
+let C=Object.assign({ort:"Oberhof",date:today(),time:"10:00",ta:-5,tar:-4,ts:null,rh:75,snow:"kunst",sky:"wolkig",prec:"kein",lat:50.705,lon:10.727,src:{}},LS.get("sm_cond",{}));
+if(!C.src)C.src={};if(!C.time)C.time="10:00";
+let LIVE={data:LS.get("sm_live",null),mNow:null,mRace:null,info:null};
+let SEL=LS.get("sm_sel",{ath:"",disc:"Skating"});
+function estSnow(ta,sky,prec){
+  if(ta==null)return null;
+  let off={klar:3,wolkig:1.6,bedeckt:0.9,nebel:0.6}[sky]??1.5;
+  if(prec==="schnee")off=Math.min(off,0.6);
+  if(prec==="regen")return 0;
+  let t=ta-off;
+  if(ta>=0)t=Math.min(0,-0.3+ta*0.05);
+  return r1(Math.min(0,t));
+}
+function cond(){
+  const tsEst=estSnow(C.ta,C.sky,C.prec), tsREst=estSnow(C.tar??C.ta,C.sky,C.prec);
+  let ts,tsRace,how;
+  if(C.ts!=null){ts=C.ts;tsRace=Math.min(0,r1(C.ts+((tsREst??tsEst)-(tsEst??0))));how="gemessen"}
+  else if(LIVE.mNow!=null&&C.src.ta!=="manuell"&&C.src.tar!=="manuell"){ts=LIVE.mNow;tsRace=LIVE.mRace??LIVE.mNow;how="Modell"}
+  else{ts=tsEst;tsRace=tsREst;how="geschätzt"}
+  return {...C,ts,tsRace,how,measured:C.ts!=null,hc:humClass(C.rh)};
+}
+
+/* ---------------- Live-Wetter (Open-Meteo) ---------------- */
+const WX="https://api.open-meteo.com/v1/forecast", GEO="https://geocoding-api.open-meteo.com/v1/search";
+function liveState(cls,txt){const b=$("#liveBox");b.className="live "+cls;$("#liveTx").innerHTML=txt}
+async function getJSON(u){
+  const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),9000);
+  try{const r=await fetch(u,{signal:ctl.signal});if(!r.ok)throw new Error("HTTP "+r.status);return await r.json()}
+  finally{clearTimeout(t)}
+}
+function blockedMsg(){
+  return window.top!==window
+   ?"Live-Wetter ist in dieser eingebetteten Ansicht gesperrt. Öffne <b>skimanager.html</b> direkt im Browser (Safari/Chrome) – dort laufen Live-Daten und 📍 Standort."
+   :"Wetterdienst nicht erreichbar – Internetverbindung prüfen. Eigene Eingaben funktionieren weiter.";
+}
+async function searchPlace(){
+  const q=$("#cOrt").value.trim();if(!q){toast("Ort eingeben");return}
+  liveState("load","Suche „"+esc(q)+"“ …");
+  try{
+    const g=await getJSON(`${GEO}?name=${encodeURIComponent(q)}&count=1&language=de&format=json`);
+    const r=g.results&&g.results[0];
+    if(!r){liveState("err","Ort „"+esc(q)+"“ nicht gefunden.");return}
+    C.ort=r.name+(r.admin1?", "+r.admin1:"");C.lat=r.latitude;C.lon=r.longitude;C.elev=r.elevation;
+    LS.set("sm_cond",C);$("#cOrt").value=C.ort;
+    await loadWeather();
+  }catch(e){liveState("err",blockedMsg())}
+}
+function useGps(){
+  if(!navigator.geolocation){liveState("err","Standort wird von diesem Browser nicht unterstützt.");return}
+  liveState("load","Standort wird ermittelt …");
+  navigator.geolocation.getCurrentPosition(async p=>{
+    C.lat=r1(p.coords.latitude*100)/100;C.lon=r1(p.coords.longitude*100)/100;C.elev=p.coords.altitude!=null?Math.round(p.coords.altitude):null;
+    C.ort="Mein Standort ("+C.lat.toFixed(2)+", "+C.lon.toFixed(2)+")";
+    LS.set("sm_cond",C);$("#cOrt").value=C.ort;await loadWeather();
+  },err=>liveState("err",window.top!==window?blockedMsg():"Standort nicht freigegeben – bitte Ortungsdienste erlauben oder Ort suchen."),{enableHighAccuracy:true,timeout:12000,maximumAge:300000});
+}
+async function loadWeather(){
+  if(C.lat==null){liveState("","Noch keine Live-Daten – Ort suchen oder 📍 tippen.");return}
+  liveState("load","Lade Live-Wetter für "+esc(C.ort||"Standort")+" …");
+  const cur="temperature_2m,relative_humidity_2m,cloud_cover,precipitation,rain,snowfall,weather_code,wind_speed_10m";
+  const hr="temperature_2m,relative_humidity_2m,cloud_cover,precipitation,precipitation_probability,rain,snowfall,weather_code,soil_temperature_0cm,snow_depth,wind_speed_10m";
+  try{
+    const d=await getJSON(`${WX}?latitude=${C.lat}&longitude=${C.lon}&current=${cur}&hourly=${hr}&timezone=auto&past_days=1&forecast_days=16${C.elev!=null?"&elevation="+C.elev:""}`);
+    d._at=Date.now();d._ort=C.ort;LIVE.data=d;LS.set("sm_live",d);
+    applyLive();
+  }catch(e){
+    if(LIVE.data&&LIVE.data._ort===C.ort){applyLive();liveState("err","Aktualisierung fehlgeschlagen – zeige Stand von "+new Date(LIVE.data._at).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"})+". "+blockedMsg())}
+    else liveState("err",blockedMsg());
+  }
+}
+const skyOf=(cc,code)=>(code===45||code===48)?"nebel":cc<25?"klar":cc<70?"wolkig":"bedeckt";
+const precOf=(sf,rain)=>sf>0?"schnee":rain>0.1?"regen":"kein";
+function raceIdx(d){const hh=(C.time||"10:00").slice(0,2);return d.hourly.time.indexOf(`${C.date}T${hh}:00`)}
+function applyLive(){
+  const d=LIVE.data;if(!d||!d.hourly||d._ort!==C.ort){LIVE.mNow=LIVE.mRace=null;drawHourly();return}
+  const H=d.hourly,cu=d.current||{};
+  const nowI=Math.max(0,H.time.indexOf((cu.time||"").slice(0,13)+":00"));
+  let i=raceIdx(d);const outOfRange=i<0;if(outOfRange)i=nowI;
+  const set=(k,v)=>{if(C.src[k]!=="manuell"&&v!=null){C[k]=v;C.src[k]="live"}};
+  set("ta",cu.temperature_2m!=null?r1(cu.temperature_2m):null);
+  set("tar",outOfRange?null:r1(H.temperature_2m[i]));
+  set("rh",Math.round(H.relative_humidity_2m[i]));
+  set("sky",skyOf(H.cloud_cover[i],H.weather_code[i]));
+  set("prec",precOf(H.snowfall[i],H.rain[i]));
+  const snowOk=j=>(H.snow_depth[j]??0)>0.02&&H.soil_temperature_0cm[j]!=null;
+  LIVE.mNow=snowOk(nowI)?Math.min(0,r1(H.soil_temperature_0cm[nowI])):null;
+  LIVE.mRace=snowOk(i)?Math.min(0,r1(H.soil_temperature_0cm[i])):null;
+  let sf24=0;for(let j=Math.max(0,i-24);j<=i;j++)sf24+=H.snowfall[j]||0;
+  LIVE.info={sf24:r1(sf24),depth:H.snow_depth[i]!=null?Math.round(H.snow_depth[i]*100):null,wind:H.wind_speed_10m[i]!=null?Math.round(H.wind_speed_10m[i]):null,out:outOfRange};
+  LS.set("sm_cond",C);
+  const at=new Date(d._at).toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"});
+  liveState(outOfRange?"err":"ok",`<b>Live</b> · ${esc(C.ort)} · aktuell ${fmtT(cu.temperature_2m)} · Wind ${cu.wind_speed_10m!=null?Math.round(cu.wind_speed_10m):"–"} km/h · Stand ${at}`+
+    (outOfRange?"<br>Renntag liegt außerhalb der 16-Tage-Vorhersage – Werte für Rennstart bitte selbst eintragen.":""));
+  renderCond();renderProg();renderSkis();drawHourly();
+}
+function drawPrec(){
+  const box=$("#precBox"),d=LIVE.data;
+  if(!d||!d.hourly||d._ort!==C.ort||!d.hourly.precipitation){box.style.display="none";return}
+  const H=d.hourly,ri=raceIdx(d);
+  const f=v=>String(r1(v)).replace(".",",");
+  const sumR=(a,b,k)=>{let s=0;for(let j=Math.max(0,a);j<=Math.min(H.time.length-1,b);j++)s+=H[k][j]||0;return s};
+  const maxP=(a,b)=>{let m=0;for(let j=Math.max(0,a);j<=Math.min(H.time.length-1,b);j++)m=Math.max(m,H.precipitation_probability?.[j]??0);return m};
+  let html="";
+  if(ri>=0){
+    const pr=sumR(ri-3,ri+3,"precipitation"),sn=sumR(ri-3,ri+3,"snowfall"),pp=maxP(ri-3,ri+3);
+    const pre=sumR(ri-24,ri-1,"snowfall");
+    const typ=pr<0.1?"trocken":sn>0&&sumR(ri-3,ri+3,"rain")<0.1?"Schnee":sn>0?"Schneeregen":"Regen";
+    html+=`<div class="hd"><span>Niederschlag um den Start</span><span class="small">±3 h · ${typ}</span></div>
+     <div class="sum"><div>Menge<b>${f(pr)} mm</b></div><div>Schnee<b>${f(sn)} cm</b></div><div>Wahrsch.<b>${Math.round(pp)} %</b></div></div>
+     <div class="note" style="margin-top:6px">Neuschnee in den 24 h davor: <b style="color:#fff">${f(pre)} cm</b>${pre>=3?" – frische, kalte Kristalle wahrscheinlich":""}${typ==="Regen"||typ==="Schneeregen"?" – nasse Bedingungen, Nassschliff mittesten":""}</div>`;
+    // Balken 06–20 h
+    const i0=H.time.indexOf(C.date+"T06:00");
+    if(i0>=0){
+      const idx=[];for(let j=i0;j<=i0+14&&j<H.time.length;j++)idx.push(j);
+      const mx=Math.max(1,...idx.map(j=>H.precipitation[j]||0));
+      const W=340,Hh=78,bw=(W-28)/idx.length,x=k=>18+k*bw,y=v=>Hh-16-(v/mx)*(Hh-30);
+      html+=`<svg class="hourly" viewBox="0 0 ${W} ${Hh}" aria-label="Niederschlag stündlich am Renntag">
+       ${idx.map((j,k)=>{const p=H.precipitation[j]||0,s=(H.snowfall[j]||0)>0,pp=H.precipitation_probability?.[j];
+         return `${p>0?`<rect x="${x(k)+2}" y="${y(p)}" width="${bw-4}" height="${Hh-16-y(p)}" rx="3" fill="${s?"#d9d2ff":"#ff7b6b"}"/>`:""}
+         ${pp!=null?`<text x="${x(k)+bw/2}" y="9" font-size="7.5" fill="rgba(255,255,255,${pp>=50?.95:.5})" text-anchor="middle">${Math.round(pp)}%</text>`:""}
+         ${k%3===0?`<text x="${x(k)+bw/2}" y="${Hh-3}" font-size="8" fill="rgba(255,255,255,.55)" text-anchor="middle">${H.time[j].slice(11,13)}h</text>`:""}
+         ${j===ri?`<rect x="${x(k)}" y="12" width="${bw}" height="${Hh-28}" rx="4" fill="none" stroke="#ff7b6b" stroke-dasharray="3 2"/>`:""}`}).join("")}
+       <line x1="18" x2="${W-10}" y1="${Hh-16}" y2="${Hh-16}" stroke="rgba(255,255,255,.25)"/>
+      </svg><div class="small">Balken: mm/h (hell = Schnee, koralle = Regen) · oben: Wahrscheinlichkeit · gestrichelt = Start · max ${f(mx)} mm/h</div>`;
+    }
+  } else html+=`<div class="hd"><span>Niederschlag</span><span class="small">Renntag außerhalb der Vorhersage</span></div>`;
+  // Tagesübersicht heute bis Renntag (+1), max 6 Tage
+  const days=[...new Set(H.time.map(t=>t.slice(0,10)))];
+  const todayS=(d.current?.time||H.time[24]).slice(0,10);
+  let from=days.indexOf(todayS);if(from<0)from=0;
+  let to=days.indexOf(C.date);to=to<0?from+4:Math.min(days.length-1,to+1);
+  const sel=days.slice(from,Math.min(to+1,from+6));
+  html+=`<div class="pdays">${sel.map(ds=>{const a=H.time.indexOf(ds+"T00:00"),b=a+23;
+    const p=sumR(a,b,"precipitation"),s=sumR(a,b,"snowfall"),pp=maxP(a,b);
+    const wd=new Date(ds+"T12:00").toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit"});
+    return `<div class="pday ${ds===C.date?"race":""}"><b>${wd}${ds===C.date?" · Rennen":""}</b>${f(p)} mm${s>0?` · ❄ ${f(s)} cm`:""}<br>${Math.round(pp)} %</div>`}).join("")}</div>`;
+  box.innerHTML=html;box.style.display="block";
+}
+function drawHourly(){
+  drawPrec();
+  const svg=$("#hourly"),d=LIVE.data;
+  if(!d||!d.hourly||d._ort!==C.ort||raceIdx(d)<0){svg.style.display="none";return}
+  svg.style.display="block";
+  const H=d.hourly,i0=H.time.indexOf(C.date+"T06:00");if(i0<0){svg.style.display="none";return}
+  const idx=[];for(let j=i0;j<=i0+14&&j<H.time.length;j++)idx.push(j);
+  const ta=idx.map(j=>H.temperature_2m[j]),ts=idx.map(j=>(H.snow_depth[j]??0)>0.02?Math.min(0,H.soil_temperature_0cm[j]):null);
+  const all=[...ta,...ts.filter(v=>v!=null),0];const lo=Math.floor(Math.min(...all))-1,hi=Math.ceil(Math.max(...all))+1;
+  const W=340,Hh=90,x=k=>18+k*(W-28)/(idx.length-1),y=v=>8+(hi-v)/(hi-lo)*(Hh-26);
+  const line=arr=>arr.map((v,k)=>v==null?"":`${x(k)},${y(v)}`).filter(Boolean).join(" ");
+  const ri=raceIdx(d)-i0;
+  svg.setAttribute("viewBox",`0 0 ${W} ${Hh}`);
+  svg.innerHTML=`<line x1="18" x2="${W-10}" y1="${y(0)}" y2="${y(0)}" stroke="rgba(255,255,255,.25)" stroke-dasharray="3 3"/>
+   <text x="2" y="${y(0)+3}" font-size="8" fill="rgba(255,255,255,.5)">0°</text>
+   ${ri>=0&&ri<idx.length?`<rect x="${x(ri)-7}" y="4" width="14" height="${Hh-20}" rx="5" fill="rgba(255,90,74,.25)"/><text x="${x(ri)}" y="${Hh-3}" font-size="8" fill="#ffb3a8" text-anchor="middle">Start</text>`:""}
+   <polyline points="${line(ta)}" fill="none" stroke="#ff7b6b" stroke-width="2.5" stroke-linejoin="round"/>
+   ${ts.some(v=>v!=null)?`<polyline points="${line(ts)}" fill="none" stroke="#b9a6ff" stroke-width="2" stroke-dasharray="4 3"/>`:""}
+   ${idx.map((j,k)=>k%3===0?`<text x="${x(k)}" y="${Hh-3}" font-size="8" fill="rgba(255,255,255,.55)" text-anchor="middle">${H.time[j].slice(11,13)}h</text>`:"").join("")}
+   <text x="${W-10}" y="12" font-size="8" fill="#ff7b6b" text-anchor="end">Luft</text>${ts.some(v=>v!=null)?`<text x="${W-10}" y="22" font-size="8" fill="#b9a6ff" text-anchor="end">Schnee (Modell)</text>`:""}`;
+}
+
+/* ---------------- Prognose ---------------- */
+function scoreSki(ski,c){
+  const t=c.tsRace;
+  const d=t<ski.tMin?ski.tMin-t:t>ski.tMax?t-ski.tMax:0;
+  const temp=Math.exp(-d/2.5);
+  const CS=snowsOf(c);
+  const salzF=o=>!c.salz?1:(o.salz?1:0.7);
+  const snow=snowFit(ski.schnee||[],CS)*salzF(ski),snowM=snow===1;
+  const hd=Math.abs(c.hc-(HUM.indexOf(ski.feuchte)>=0?HUM.indexOf(ski.feuchte):1));
+  const hum=[1,0.65,0.3][hd];
+  const G=grindOf(ski.schliff);let gs=null,gd=0,gSnow=false,gBase=null;
+  if(G){gd=t<G.tMin?G.tMin-t:t>G.tMax?t-G.tMax:0;gSnow=snowFit(G.schnee,CS)===1;
+    const ghd=Math.abs(c.hc-HUM.indexOf(G.feuchte));
+    gBase=!G.bases.length||!ski.base?null:G.bases.includes(ski.base);
+    gs=0.55*Math.exp(-gd/2)+0.25*snowFit(G.schnee,CS)*salzF(G)+0.2*[1,0.65,0.3][ghd];
+    if(gBase===false)gs*=0.85;
+    if(G.most==="X")gs=Math.min(1,gs*1.04);}
+  const base=gs==null?0.5*temp+0.3*snow+0.2*hum:0.38*temp+0.2*snow+0.12*hum+0.3*gs;
+  let sw=0,sv=0,n=0,best=null;
+  const now=Date.now();
+  S.races.filter(r=>r.skiId===ski.id&&r.gleit!=null).forEach(r=>{
+    const rt=num(r.schneeT)??estSnow(num(r.luftT),"wolkig","kein")??t;
+    const age=Math.max(0,(now-new Date(r.datum||now).getTime())/864e5);
+    const w=Math.exp(-Math.pow((rt-t)/3,2))*(snowsOf(r).some(x=>CS.includes(x))?1:0.6)*(!!r.salz===!!c.salz?1:0.7)*(humClass(num(r.rh)??70)===c.hc?1:0.75)*Math.exp(-age/730)*(r.typ==="Rennen"?1:0.85);
+    sw+=w;sv+=w*(num(r.gleit)/10);n++;
+    if(w>0.35&&(!best||num(r.gleit)>num(best.gleit)))best=r;
+  });
+  const hist=sw>0?sv/sw:null;
+  const alpha=sw>0?Math.min(.65,sw/(sw+1.5)):0;
+  const score=Math.round(100*(hist==null?base:base*(1-alpha)+hist*alpha));
+  const conf=sw<0.5?"gering":sw<2?"mittel":"hoch";
+  const why=[];
+  why.push(d===0?["g",`Schnee ${fmtT(t)} im Bereich ${fmtT(ski.tMin)} bis ${fmtT(ski.tMax)}`]:[d<2?"y":"r",`${r1(d).toString().replace(".",",")} °C außerhalb des Bereichs`]);
+  if(c.salz)why.push(ski.salz?["g","Salz: Ski geeignet"]:["y","Salz: Ski nicht dafür markiert"]);
+  why.push(snowM?["g",snowTxt(c)+" passt"]:snow>0.5?["y",snowTxt(c)+" teilweise im Profil"]:["y",snowTxt(c)+" nicht im Profil"]);
+  why.push(hd===0?["g","Feuchte passt"]:[hd===1?"y":"r","Feuchte "+HUM[c.hc]+" ≠ "+(ski.feuchte||"mittel")]);
+  if(G){why.push(gd===0&&gSnow?["g",`Schliff ${G.name} (${G.cond}) passt`]:gd===0?["y",`Schliff ${G.name}: Temp ok, ${snowTxt(c)} untypisch`]:[gd<2?"y":"r",`Schliff ${G.name} (${G.cond}) ${String(r1(gd)).replace(".",",")} °C daneben`]);
+    if(c.salz&&G.salz)why.push(["g",`${G.name} für Salzspur geeignet`]);
+    if(gBase===false)why.push(["y",`${G.name} auf ${ski.base} untypisch (empf. ${G.bases.join("/")})`]);
+    if(G.most==="X")why.push(["b","bewährter Schliff"]);else if(G.most==="Test")why.push(["y","Testschliff"]);}
+  else if(ski.schliff)why.push(["","Schliff nicht in DB"]);
+  if(hist!=null)why.push(["b",`Historie Ø ${r1(hist*10).toString().replace(".",",")}/10 aus ${n} Einträgen`]);
+  else why.push(["","keine Renndaten"]);
+  return {ski,score,base,hist,conf,n,sw,why,best,d};
+}
+function athleteNames(){
+  const s=new Set();S.skis.forEach(x=>x.athlet&&s.add(x.athlet));S.races.forEach(x=>x.athlet&&s.add(x.athlet));
+  return [...s].sort((a,b)=>a.localeCompare(b,"de"));
+}
+function candidates(){
+  return S.skis.filter(s=>(!SEL.ath||s.athlet===SEL.ath||s.athlet==="Pool")&&s.disziplin===SEL.disc&&s.status!=="ausgemustert");
+}
+
+/* ---------------- Render: Prognose ---------------- */
+function chipRow(el,items,val,cb,cls=""){
+  el.innerHTML=items.map(([k,l])=>`<button class="chip ${cls} ${k===val?"on":""}" data-k="${k}">${l}</button>`).join("");
+  el.onclick=e=>{const b=e.target.closest(".chip");if(b)cb(b.dataset.k)};
+}
+function fillAthSelect(el,val,allLabel){
+  const names=athleteNames();
+  el.innerHTML=`<option value="">${allLabel}</option>`+names.map(n=>`<option ${n===val?"selected":""}>${esc(n)}</option>`).join("");
+}
+function renderCond(){
+  $("#cOrt").value=C.ort||"";$("#cDate").value=C.date||today();$("#cTime").value=C.time||"10:00";
+  $("#cTa").value=C.ta??"";$("#cTaR").value=C.tar??"";$("#cTs").value=C.ts??"";
+  $("#cRh").value=C.rh;$("#rhV").textContent=C.rh+" % · "+HUM[humClass(C.rh)];
+  const cur=snowsOf(C);
+  $("#cSnow").innerHTML=SNOW.map(([k,l])=>{const i=cur.indexOf(k);return `<button class="chip ${i>=0?"on":""}" data-k="${k}">${i>=0&&cur.length>1?(i+1)+". ":""}${l}</button>`}).join("");
+  $("#cSnow").onclick=e=>{const b=e.target.closest(".chip");if(!b)return;const k=b.dataset.k;let a=snowsOf(C);
+    if(a.includes(k)){if(a.length>1)a=a.filter(x=>x!==k)}else a=a.length<2?[...a,k]:[a[0],k];
+    C.snow=a[0];C.snow2=a[1]||"";saveCond()};
+  $("#cSalzW").innerHTML=salzChip("cSalz",!!C.salz);
+  $("#cSalz").onclick=()=>{C.salz=!C.salz;saveCond()};
+  chipRow($("#cSky"),SKY,C.sky,k=>{C.sky=k;C.src.sky="manuell";saveCond()},"blue");
+  chipRow($("#cPrec"),PREC,C.prec,k=>{C.prec=k;C.src.prec="manuell";saveCond()},"blue");
+  const c=cond();
+  $$("em.src").forEach(el=>{const k=el.dataset.s;let s=k==="ts"?(c.how==="gemessen"?"manuell":c.how==="Modell"?"live":"est"):(C.src[k]||"");
+    el.className="src "+(s==="live"?"sl":s==="manuell"?"sm":s==="est"?"se":"");el.textContent=s==="live"?"live":s==="manuell"?"eigene":s==="est"?"schätzung":""});
+  const I=LIVE.info;
+  $("#snowHint").textContent=I&&LIVE.data&&LIVE.data._ort===C.ort?`– Modell: Neuschnee 24 h ${String(I.sf24).replace(".",",")} cm${I.depth!=null?" · Schneehöhe "+I.depth+" cm":""}${I.sf24>=3?" → Neuschnee?":""}`:"";
+}
+function saveCond(){LS.set("sm_cond",C);renderCond();renderProg()}
+function renderKpis(c){
+  const trend=(C.tar??C.ta)-(C.ta??0);
+  $("#kpis").innerHTML=`
+   <div class="kpi"><div class="l">Schnee jetzt</div><div class="v">${fmtT(c.ts)}</div><div class="h">${c.how}</div></div>
+   <div class="kpi"><div class="l">Schnee Rennen</div><div class="v">${fmtT(c.tsRace)}</div><div class="h">Prognosebasis</div></div>
+   <div class="kpi"><div class="l">Trend Luft</div><div class="v">${trend>0?"↗":trend<0?"↘":"→"} ${r1(Math.abs(trend)).toString().replace(".",",")}°</div><div class="h">${trend>1.5?"Erwärmung":trend<-1.5?"Abkühlung":"stabil"}</div></div>
+   <div class="kpi"><div class="l">Feuchte</div><div class="v">${C.rh}%</div><div class="h">${HUM[c.hc]}</div></div>`;
+  $("#estHint").textContent=C.date?fmtD(C.date)+" · "+(C.time||""):"";
+}
+function renderProg(){
+  fillAthSelect($("#pAth"),SEL.ath,"Alle / Pool");$("#pDisc").value=SEL.disc;
+  const c=cond();renderKpis(c);
+  const res=candidates().map(s=>scoreSki(s,c)).sort((a,b)=>b.score-a.score);
+  $("#progMeta").textContent=res.length?res.length+" Ski bewertet":"";
+  if(!res.length){
+    $("#progList").innerHTML=`<div class="empty">Keine passenden Ski für ${esc(SEL.ath||"diese Auswahl")} · ${esc(SEL.disc)}.<br>Lege Ski in der Skidatenbank an.</div>`;
+    $("#testBox").innerHTML=`<div class="empty">Sobald Ski vorhanden sind, erscheint hier der Testvorschlag.</div>`;return;
+  }
+  $("#progList").innerHTML=res.slice(0,8).map((r,i)=>{
+    const col=r.score>=75?"#34c759":r.score>=55?"#ffcc00":"#ff453a";
+    return `<div class="rank ${i===0?"top":""}" data-ski="${r.ski.id}">
+      <div class="ring" style="--p:${r.score};--c:${col}"><span>${r.score}</span></div>
+      <div style="flex:1;min-width:0">
+        <div class="t">${i+1}. ${esc(r.ski.nr)} <span class="sub">· ${esc(r.ski.schliff||"")}</span></div>
+        <div class="m">${esc(r.ski.modell||"")}${r.ski.base?" · Belag "+esc(baseTxt(r.ski.base)):""} · ${esc(r.ski.athlet||"")} · Sicherheit ${r.conf}</div>
+        <div class="tags">${r.why.map(([c,t])=>`<span class="tag ${c}">${esc(t)}</span>`).join("")}</div>
+      </div></div>`}).join("")+(res.length>8?`<div class="small">+ ${res.length-8} weitere</div>`:"");
+  renderTest(res,c);
+}
+function renderTest(res,c){
+  const top=res.slice(0,3);
+  const trend=(C.tar??C.ta)-(C.ta??0);
+  const used=new Set(top.map(r=>r.ski.id));
+  const schliffe=new Set(top.map(r=>(r.ski.schliff||"").toLowerCase()));
+  const mid=r=>(r.ski.tMin+r.ski.tMax)/2;
+  const topMid=top.reduce((a,r)=>a+mid(r),0)/top.length;
+  let pool=res.filter(r=>!used.has(r.ski.id));
+  let ctr=null,ctrWhy="";
+  if(pool.length){
+    if(Math.abs(trend)>=1.5){
+      const dir=Math.sign(trend);
+      ctr=pool.filter(r=>(mid(r)-topMid)*dir>0).sort((a,b)=>b.score-a.score)[0];
+      ctrWhy=dir>0?"wärmerer Bereich – Absicherung gegen Erwärmung":"kälterer Bereich – Absicherung gegen Abkühlung";
+    }
+    if(!ctr){ctr=pool.filter(r=>!schliffe.has((r.ski.schliff||"").toLowerCase())).sort((a,b)=>b.score-a.score)[0];ctrWhy="anderer Schliff als Gegenprobe";}
+    if(!ctr){ctr=pool[0];ctrWhy="nächstbester Ski";}
+  }
+  const set=[...top];if(ctr)set.push(ctr);
+  const L="ABCD";
+  const lowConf=top.filter(r=>r.conf==="gering").length;
+  const gap=top.length>1?top[0].score-top[1].score:99;
+  let verdict;
+  if(gap>=12&&top[0].conf!=="gering")verdict=`<b>${esc(top[0].ski.nr)}</b> ist klarer Favorit. Test dient zur Bestätigung – kurzer Vergleich mit Kontrastski reicht.`;
+  else if(gap<5)verdict=`Top-Ski liegen eng beieinander (${gap} Pkt.). Vollständigen Paarvergleich durchführen.`;
+  else verdict=`Leichter Vorteil für <b>${esc(top[0].ski.nr)}</b>. Paarvergleich der Top 2 mit Wiederholung empfohlen.`;
+  const testTime=C.date?fmtD(C.date):"";
+  $("#testBox").innerHTML=`
+   <div class="sub">${verdict}</div>
+   <div class="testpair">${set.map((r,i)=>`<div class="tp ${r===ctr?"ctr":""}"><div class="k">Ski ${L[i]}${r===ctr?" · Kontrast":""}</div><div class="n">${esc(r.ski.nr)}</div><div class="d">${esc(r.ski.schliff||"–")}${r.ski.base?" · "+esc(r.ski.base):""} · ${r.score} Pkt.${r===ctr?"<br>"+ctrWhy:""}</div></div>`).join("")}</div>
+   ${lowConf?`<div class="alert">${lowConf} der Top-Ski haben wenig vergleichbare Renndaten – Testergebnis besonders sorgfältig erfassen.</div>`:""}
+   ${Math.abs(trend)>=3?`<div class="alert">Starke Temperaturänderung bis zum Rennstart (${trend>0?"+":""}${r1(trend)} °C). Test möglichst nah an der Startzeit wiederholen.</div>`:""}
+   <button class="btn wide" id="recTest" style="margin-top:12px">Testergebnisse erfassen</button>`;
+  $("#recTest").onclick=()=>openTestSheet(set.map(r=>r.ski));
+}
+
+/* ---------------- Render: Ski ---------------- */
+function skiStats(id){
+  const rs=S.races.filter(r=>r.skiId===id&&r.gleit!=null);
+  return {n:rs.length,avg:rs.length?rs.reduce((a,r)=>a+num(r.gleit),0)/rs.length:null};
+}
+function tbar(ski,t){
+  const lo=-25,hi=5,p=v=>Math.max(0,Math.min(100,(v-lo)/(hi-lo)*100));
+  return `<div class="tbar"><i style="left:${p(ski.tMin)}%;width:${Math.max(2,p(ski.tMax)-p(ski.tMin))}%"></i>${t!=null?`<u style="left:${p(t)}%"></u>`:""}</div>`;
+}
+function renderSkis(){
+  fillAthSelect($("#sAth"),$("#sAth").value,"Alle Athlet/innen");
+  const q=$("#sQ").value.toLowerCase().trim(),a=$("#sAth").value,d=$("#sDisc").value,st=$("#sStat").value;
+  const c=cond();
+  const list=S.skis.filter(s=>(!a||s.athlet===a)&&(!d||s.disziplin===d)&&(!st||s.status===st)&&
+    (!q||[s.nr,s.modell,s.schliff,baseTxt(s.base),s.athlet,s.notiz].join(" ").toLowerCase().includes(q)))
+    .sort((x,y)=>(x.athlet||"").localeCompare(y.athlet||"","de")||(x.nr||"").localeCompare(y.nr||"","de",{numeric:true}));
+  $("#skiList").innerHTML=list.length?list.map(s=>{const st=skiStats(s.id);const cls=s.disziplin==="Klassisch"?"k":s.disziplin==="Sprung"?"s":"";
+    return `<div class="row" data-id="${s.id}"><div class="badge ${cls}">${esc((s.disziplin||"").slice(0,3).toUpperCase())}</div>
+     <div class="main"><div class="t">${esc(s.nr)} · ${esc(s.schliff||"")}</div>
+     <div class="m">${esc(s.athlet||"")} · ${s.base?esc(baseTxt(s.base))+" · ":""}${esc(s.modell||"")} · ${fmtT(s.tMin)} bis ${fmtT(s.tMax)} · ${esc(s.status||"")}</div>${tbar(s,c.tsRace)}</div>
+     <div class="r"><b>${st.avg!=null?r1(st.avg).toString().replace(".",","):"–"}</b>${st.n} Eintr.</div></div>`}).join("")
+    :`<div class="empty">Keine Ski gefunden.<br>Mit „+“ den ersten Ski anlegen.</div>`;
+}
+
+/* ---------------- Render: Rennen ---------------- */
+function skiById(id){return S.skis.find(s=>s.id===id)}
+let SKIF=[];
+const gCls=g=>g==null?"":g>=8?"g":g>=5.5?"y":"r";
+const testKey=r=>r.testId||r.id;
+function raceItems(){
+  const items=[],tests={};
+  S.races.forEach(r=>{
+    if(r.typ==="Test"){const k=testKey(r);if(!tests[k]){tests[k]={kind:"test",key:k,entries:[]};items.push(tests[k])}tests[k].entries.push(r)}
+    else items.push({kind:"race",key:r.id,entries:[r]});
+  });
+  items.forEach(it=>{it.entries.sort((a,b)=>(num(a.testPlatz)??99)-(num(b.testPlatz)??99));it.r=it.entries[0];it.datum=it.r.datum||""});
+  return items.sort((x,y)=>y.datum.localeCompare(x.datum));
+}
+function renderRaces(){
+  fillAthSelect($("#rAth"),$("#rAth").value,"Alle Athlet/innen");
+  const a=$("#rAth").value,t=$("#rTyp").value;
+  SKIF=SKIF.filter(id=>skiById(id));
+  $("#rSki").innerHTML=`<option value="">${SKIF.length?"+ weiteren Ski":"Ski-Filter: Ski wählen …"}</option>`+S.skis.filter(s=>!SKIF.includes(s.id)&&(!a||s.athlet===a||s.athlet==="Pool"))
+    .sort((x,y)=>(x.nr||"").localeCompare(y.nr||"",undefined,{numeric:true})).map(s=>`<option value="${s.id}">${esc(s.nr)} · ${esc(s.schliff||"–")}${a?"":" · "+esc(s.athlet||"")}</option>`).join("");
+  $("#rSkiChips").innerHTML=SKIF.map(id=>`<button class="chip on" data-rm="${id}">${esc(skiById(id).nr)} ✕</button>`).join("");
+  const items=raceItems().filter(it=>(!a||it.r.athlet===a)&&(!t||it.r.typ===t||(it.r.typ==="Rennen"&&it.r.serie===t))&&(!SKIF.length||it.entries.some(r=>SKIF.includes(r.skiId))));
+  $("#rSkiSum").innerHTML=SKIF.map(id=>{const s=skiById(id);const rs=S.races.filter(r=>r.skiId===id&&(!a||r.athlet===a));
+    const ts=rs.filter(r=>r.typ==="Test"&&num(r.testPlatz)!=null),wk=rs.filter(r=>r.typ!=="Test"&&num(r.note)!=null);
+    const avg=(arr,k)=>arr.length?String(r1(arr.reduce((x,r)=>x+num(r[k]),0)/arr.length)).replace(".",","):"–";
+    const wins=ts.filter(r=>num(r.testPlatz)===1).length,lasts=ts.filter(r=>num(r.testN)>1&&num(r.testPlatz)===num(r.testN)).length;
+    const gl=rs.filter(r=>r.gleit!=null),best=gl.slice().sort((x,y)=>y.gleit-x.gleit)[0],worst=gl.slice().sort((x,y)=>x.gleit-y.gleit)[0];
+    const cnd=r=>`${fmtD(r.datum).slice(0,5)} ${esc(r.ort||"")} · ${fmtT(num(r.schneeT))} · ${esc(snowTxt(r)||"")}`;
+    return `<div class="tp" style="margin-bottom:8px"><div class="n">${esc(s.nr)} <span class="sub">${esc(s.schliff||"")}${s.base?" · "+esc(s.base):""}</span></div>
+     <div class="tags"><span class="tag">Tests ${ts.length} · Ø Platz ${avg(ts,"testPlatz")}</span><span class="tag g">${wins}× Testsieger</span><span class="tag r">${lasts}× Letzter</span><span class="tag">Rennen ${wk.length} · Ø Note ${avg(wk,"note")}</span></div>
+     ${best&&gl.length>1?`<div class="note" style="margin-top:6px">▲ gut: ${cnd(best)}<br>▼ schwach: ${cnd(worst)}</div>`:""}</div>`}).join("");
+  $("#raceList").innerHTML=items.length?items.map(it=>{const r=it.r;
+    const res=e=>e.typ==="Test"?`${e.testPlatz??"?"}./${e.testN||it.entries.length}`:num(e.note)!=null?`Note ${e.note}`:`Index ${e.gleit??"–"}`;
+    const hit=SKIF.length?it.entries.filter(e=>SKIF.includes(e.skiId)):[];
+    const right=hit.length?hit.map(e=>`<span class="tag ${gCls(e.gleit)}" style="display:block;margin:2px 0;white-space:nowrap">${esc(skiById(e.skiId)?.nr||"?")} ${res(e)}${e.fuss?" · "+esc(e.fuss):""}</span>`).join("")
+      :it.kind==="test"?`<b>${it.entries.length}</b>Ski`:num(r.note)!=null?`<b>${esc(r.note)}</b>Note`:`<b>${r.gleit!=null?esc(r.gleit):"–"}</b>Index`;
+    const order=it.kind==="test"?`<div class="m" style="white-space:normal">${it.entries.map(e=>{const nr=esc(skiById(e.skiId)?.nr||"?");return `${e.testPlatz??"?"}. ${SKIF.includes(e.skiId)?`<b style="color:#fff">${nr}</b>`:nr}${e.fuss?` (${esc(e.fuss)})`:""}`}).join(" · ")}</div>`
+      :`<div class="m">Ski ${esc(skiById(r.skiId)?.nr||"?")}${r.platz?" · Platz "+esc(r.platz):""}${r.fuss?" · vom Fuß "+esc(r.fuss):""}</div>`;
+    return `<div class="row" data-kind="${it.kind}" data-key="${esc(it.key)}"><div class="badge ${r.typ==="Test"?"k":r.typ==="Training"?"s":""}">${esc(fmtD(r.datum).slice(0,5))}</div>
+     <div class="main"><div class="t">${esc(r.ort||"–")} · ${esc(r.athlet||"")}</div>
+     <div class="m">${esc(r.typ||"")}${r.serie?" "+esc(r.serie):""} · Schnee ${fmtT(num(r.schneeT))} · ${esc(snowTxt(r))} · ${num(r.rh)??"–"} %</div>${order}</div>
+     <div class="r">${right}</div></div>`}).join("")
+    :`<div class="empty">${SKIF.length?"Keine Einträge mit diesem Ski.":"Noch keine Renn- oder Testdaten.<br>Mit „+“ erfassen oder im Prognose-Tab Testergebnisse eintragen."}</div>`;
+}
+
+/* ---------------- Render: Mehr ---------------- */
+function renderMore(){
+  $("#storeInfo").innerHTML=S.mode==="supa"
+   ?"Daten liegen auf eurem Supabase-Server und werden zusätzlich auf diesem Gerät zwischengespeichert. Ohne Netz wird lokal gespeichert und später automatisch hochgeladen."
+   :S.mode==="cloud"
+   ?"Daten liegen in der gemeinsamen Datenbank dieser Seite. Alle Personen, mit denen du den Skimanager teilst (Rolle „Mitwirkende“ oder höher), sehen und bearbeiten dieselbe Skidatenbank live."
+   :"Daten werden nur lokal in diesem Browser gespeichert. Für ein gemeinsames Team-Arbeiten den Skimanager über claude.ai öffnen und teilen.";
+  const ath=athleteNames().length;
+  $("#dbKpis").innerHTML=`<div class="kpi"><div class="l">Ski</div><div class="v">${S.skis.length}</div></div>
+   <div class="kpi"><div class="l">Aktiv</div><div class="v">${S.skis.filter(s=>s.status==="aktiv").length}</div></div>
+   <div class="kpi"><div class="l">Einträge</div><div class="v">${S.races.length}</div></div>
+   <div class="kpi"><div class="l">Athlet/innen</div><div class="v">${ath}</div></div>`;
+}
+let GF="Alle";
+function renderGrinds(){
+  chipRow($("#gFilter"),["Alle","Kalt","Universal","Nass"].map(x=>[x,x]),GF,k=>{GF=k;renderGrinds()},"blue");
+  const cnt=n=>S.skis.filter(s=>grindOf(s.schliff)?.name===n).length;
+  $("#grindList").innerHTML=grinds().filter(g=>GF==="Alle"||g.cond===GF).map(g=>`<div class="row" data-g="${esc(g.name)}">
+    <div class="badge ${g.cond==="Kalt"?"k":g.cond==="Universal"?"s":""}" style="font-size:${g.name.length>5?10:12}px">${esc(g.name)}</div>
+    <div class="main"><div class="t">${esc(g.name)}${g.most==="X"?" ★":""}${g.most==="Test"?" · Test":""} <span class="sub">· ${esc(g.maker)}</span></div>
+    <div class="m">${g.cond} · ${fmtT(g.tMin)} bis ${fmtT(g.tMax)}${g.salz?" · 🧂 Salz":""} · ${esc(g.details)}</div>
+    <div class="m">${esc(g.rem)}${g.bases.length?" · Beläge "+g.bases.join("/"):""}${g.edited?" · angepasst":""}</div></div>
+    <div class="r"><b>${cnt(g.name)}</b>Ski</div></div>`).join("");
+}
+function openGrindSheet(name){
+  const G=grindOf(name);if(!G)return;const def=GRINDS_DEF.find(g=>g.name===G.name);
+  openSheet(`<h2>Schliff ${esc(G.name)} <button class="iconbtn" data-x>×</button></h2>
+   <div class="sub">${esc(G.maker)} · ${G.cond}<br>${esc(G.details)}. ${esc(G.rem)}</div>
+   <h3>Einsatzprofil für die Prognose</h3>
+   <div class="grid g3">
+    <label class="f">Schnee min °C<input id="gMin" type="number" step="0.5" inputmode="decimal" value="${G.tMin}"></label>
+    <label class="f">Schnee max °C<input id="gMax" type="number" step="0.5" inputmode="decimal" value="${G.tMax}"></label>
+    <label class="f">Feuchte<select id="gHum">${HUM.map(x=>`<option ${x===G.feuchte?"selected":""}>${x}</option>`).join("")}</select></label>
+   </div>
+   <h3>Schneearten</h3><div class="chips" id="gSnow">${SNOW.map(([k,l])=>`<button class="chip ${G.schnee.includes(k)?"on":""}" data-k="${k}">${l}</button>`).join("")}</div>
+   <div class="chips" style="margin-top:7px">${salzChip("gSalzG",!!G.salz)}</div>
+   <div class="note">Standard: ${fmtT(def.tMin)} bis ${fmtT(def.tMax)} · ${def.schnee.map(k=>SNOWN[k]).join(", ")} · ${def.feuchte}</div>
+   <div class="actions">${G.edited?`<button class="btn ghost" data-del>Standard</button>`:""}<button class="btn" data-save>Speichern</button></div>`);
+  $("#gSnow").onclick=e=>{const b=e.target.closest(".chip");if(b)b.classList.toggle("on")};bindToggle("gSalzG");
+  bindSheet(async()=>{
+    let a=num($("#gMin").value)??G.tMin,b=num($("#gMax").value)??G.tMax;if(a>b)[a,b]=[b,a];
+    if(await put("grinds",{id:gid(G.name),name:G.name,tMin:a,tMax:b,feuchte:$("#gHum").value,schnee:$$("#gSnow .chip.on").map(x=>x.dataset.k),salz:isOn("gSalzG")})){closeSheet();toast(G.name+" gespeichert")}
+  },async()=>{closeSheet();await del("grinds",gid(G.name));toast("Standard wiederhergestellt")});
+}
+$("#grindList").onclick=e=>{const r=e.target.closest("[data-g]");if(r)openGrindSheet(r.dataset.g)};
+function renderAll(){renderProg();renderSkis();renderRaces();renderMore();renderGrinds()}
+
+/* ---------------- Sheets ---------------- */
+function openSheet(html){$("#sheetBody").innerHTML=html;$("#sheet").classList.add("on");$("#scrim").classList.add("on");$("#sheet").scrollTop=0}
+function closeSheet(){$("#sheet").classList.remove("on");$("#scrim").classList.remove("on")}
+$("#scrim").onclick=closeSheet;
+function athList(){return athleteNames().map(n=>`<option>${esc(n)}</option>`).join("")+"<option>Pool</option>"}
+
+function openSkiSheet(id){
+  const s=id?{...skiById(id)}:{id:uid(),nr:"",athlet:SEL.ath||"",disziplin:SEL.disc,modell:"",schliff:"",base:"",flex:"mittel",laenge:"",tMin:-10,tMax:-2,schnee:[],feuchte:"mittel",status:"aktiv",notiz:""};
+  const st=id?skiStats(id):null;
+  openSheet(`<h2>${id?"Ski bearbeiten":"Neuer Ski"} <button class="iconbtn" data-x>×</button></h2>
+   <datalist id="athDL">${athList()}</datalist>
+   <div class="grid g2">
+    <label class="f">Ski-Nr.*<input id="fNr" value="${esc(s.nr)}" placeholder="z. B. SK-07"></label>
+    <label class="f">Athlet/in<input id="fAth" list="athDL" value="${esc(s.athlet)}" placeholder="Name oder Pool"></label>
+    <label class="f">Disziplin<select id="fDisc">${["Skating","Klassisch","Sprung"].map(x=>`<option ${x===s.disziplin?"selected":""}>${x}</option>`).join("")}</select></label>
+    <label class="f">Status<select id="fStat">${["aktiv","Test","Reserve","ausgemustert"].map(x=>`<option ${x===s.status?"selected":""}>${x}</option>`).join("")}</select></label>
+    <label class="f">Modell<input id="fMod" value="${esc(s.modell)}" placeholder="z. B. X-IUM Skating Premium+"></label>
+    <label class="f">Schliff<select id="fSch"><option value="">– kein Eintrag –</option>${["Kalt","Universal","Nass"].map(cg=>`<optgroup label="${cg}">${grinds().filter(g=>g.cond===cg).map(g=>`<option value="${esc(g.name)}" ${grindOf(s.schliff)===g?"selected":""}>${esc(g.name)}${g.most==="X"?" ★":g.most==="Test"?" (Test)":""}</option>`).join("")}</optgroup>`).join("")}${s.schliff&&!grindOf(s.schliff)?`<option value="${esc(s.schliff)}" selected>${esc(s.schliff)} (sonstiger)</option>`:""}</select></label>
+    <label class="f">Belag<select id="fBase"><option value="">– kein Eintrag –</option>${Object.entries(BASES).map(([k,v])=>`<option value="${k}" ${k===s.base?"selected":""}>${k} ${v.n} · ${v.mat}</option>`).join("")}${s.base&&!BASES[s.base]?`<option value="${esc(s.base)}" selected>${esc(s.base)} (sonstiger)</option>`:""}</select></label>
+    <label class="f">Länge (cm)<input id="fLen" type="number" inputmode="numeric" value="${esc(s.laenge)}"></label>
+    <label class="f">Flex / Härte<select id="fFlex">${["weich","mittel","hart"].map(x=>`<option ${x===s.flex?"selected":""}>${x}</option>`).join("")}</select></label>
+    <label class="f">Feuchte-Profil<select id="fHum">${HUM.map(x=>`<option ${x===s.feuchte?"selected":""}>${x}</option>`).join("")}</select></label>
+    <label class="f">Schnee min °C<input id="fTmin" type="number" step="0.5" inputmode="decimal" value="${s.tMin}"></label>
+    <label class="f">Schnee max °C<input id="fTmax" type="number" step="0.5" inputmode="decimal" value="${s.tMax}"></label>
+   </div>
+   <div class="note" id="fGInfo"></div>
+   <h3>Geeignete Schneearten</h3><div class="chips" id="fSnow">${SNOW.map(([k,l])=>`<button class="chip ${(s.schnee||[]).includes(k)?"on":""}" data-k="${k}">${l}</button>`).join("")}</div>
+   <div class="chips" style="margin-top:7px">${salzChip("fSalz",!!s.salz)}</div>
+   <label class="f" style="margin-top:12px">Notiz<textarea id="fNote" rows="2">${esc(s.notiz)}</textarea></label>
+   ${st?`<div class="note">${st.n} Renn-/Testeinträge · Ø Gleitnote ${st.avg!=null?r1(st.avg):"–"}</div>${histSvg(id)}`:""}
+   <div class="actions">${id?`<button class="btn ghost" data-del>Löschen</button>`:""}<button class="btn" data-save>Speichern</button></div>`);
+  $("#fSnow").onclick=e=>{const b=e.target.closest(".chip");if(b)b.classList.toggle("on")};bindToggle("fSalz");
+  const gInfo=(apply)=>{const G=grindOf($("#fSch").value);
+    if(!G){$("#fGInfo").innerHTML="";return}
+    $("#fGInfo").innerHTML=`<b style="color:#fff">${esc(G.name)}</b> · ${esc(G.maker)} · ${G.cond} · ${fmtT(G.tMin)} bis ${fmtT(G.tMax)}<br>${esc(G.details)}. ${esc(G.rem)}${G.bases.length?`<br>Empfohlene Beläge: ${G.bases.join(", ")}`:""}
+      <br><button class="btn ghost sm" id="fGApply" style="margin-top:6px">Einsatzprofil aus Schliff übernehmen</button>`;
+    $("#fGApply").onclick=()=>{$("#fTmin").value=G.tMin;$("#fTmax").value=G.tMax;$("#fHum").value=G.feuchte;$$("#fSnow .chip").forEach(b=>b.classList.toggle("on",G.schnee.includes(b.dataset.k)));$("#fSalz").classList.toggle("on",!!G.salz);toast("Profil von "+G.name+" übernommen")};
+    if(apply)$("#fGApply").click()};
+  $("#fSch").onchange=()=>gInfo(!id);gInfo(false);
+  bindSheet(async()=>{
+    const o={...s,nr:$("#fNr").value.trim(),athlet:$("#fAth").value.trim(),disziplin:$("#fDisc").value,status:$("#fStat").value,
+      modell:$("#fMod").value.trim(),schliff:$("#fSch").value,base:$("#fBase").value,laenge:num($("#fLen").value),
+      flex:$("#fFlex").value,feuchte:$("#fHum").value,tMin:num($("#fTmin").value)??-10,tMax:num($("#fTmax").value)??0,
+      schnee:$$("#fSnow .chip.on").map(b=>b.dataset.k),salz:isOn("fSalz"),notiz:$("#fNote").value.trim()};
+    if(!o.nr){toast("Ski-Nr. fehlt");return}
+    if(o.tMin>o.tMax)[o.tMin,o.tMax]=[o.tMax,o.tMin];
+    if(await put("skis",o)){closeSheet();toast("Ski gespeichert")}
+  },()=>confirmDel("Ski "+s.nr,()=>del("skis",s.id)));
+}
+function histSvg(id){
+  const rs=S.races.filter(r=>r.skiId===id&&r.gleit!=null&&num(r.schneeT)!=null);
+  if(rs.length<2)return"";
+  const W=320,H=120,x=t=>20+(t+20)/22*(W-30),y=g=>H-15-(g/10)*(H-25);
+  const ski=skiById(id);
+  return `<svg class="hist" viewBox="0 0 ${W} ${H}" role="img" aria-label="Gleitnote nach Schneetemperatur">
+   <rect x="${x(ski.tMin)}" y="5" width="${Math.max(2,x(ski.tMax)-x(ski.tMin))}" height="${H-20}" fill="rgba(139,58,143,.35)" rx="4"/>
+   <line x1="20" y1="${H-15}" x2="${W-10}" y2="${H-15}" stroke="rgba(255,255,255,.3)"/>
+   ${[-20,-15,-10,-5,0].map(t=>`<text x="${x(t)}" y="${H-2}" fill="rgba(255,255,255,.55)" font-size="9" text-anchor="middle">${t}°</text>`).join("")}
+   ${rs.map(r=>`<circle cx="${x(Math.max(-20,num(r.schneeT)))}" cy="${y(num(r.gleit))}" r="5" fill="${r.typ==="Rennen"?"#fff":"#FF5A4A"}" stroke="#1c2350"/>`).join("")}
+  </svg><div class="small">Punkte: Gleitnote je Schneetemperatur (weiß = Rennen, koralle = Test); Fläche = Einsatzbereich</div>`;
+}
+/* ---- Bewertung: Test = Platz im Test, Wettkampf = Schulnote 1–6, beides + „vom Fuß“ (++/+/0/-) ---- */
+const SERIEN=[["WC","Weltcup"],["COC","Continental Cup"],["WM","Weltmeisterschaft"]];
+const FUSS=["++","+","0","-"],FUSSADJ={"++":0.5,"+":0.25,"0":0,"-":-0.5};
+function deriveGleit(r){
+  let g=null;
+  if(r.typ==="Test"&&num(r.testPlatz)!=null){const n=num(r.testN)||1,p=num(r.testPlatz);g=n<=1?7:10-(p-1)/(n-1)*6}
+  else if(num(r.note)!=null)g=11.5-1.5*num(r.note);
+  else if(num(r.gleit)!=null)g=num(r.gleit);
+  if(g==null)return null;
+  return r1(Math.max(1,Math.min(10,g+(FUSSADJ[r.fuss]??0))));
+}
+function fussChips(id,val){return `<div class="chips" id="${id}">${FUSS.map(f=>`<button class="chip ${f===val?"on":""}" data-k="${f}">${f}</button>`).join("")}</div>`}
+function bindSingleChips(id){const el=$("#"+id);el.onclick=e=>{const b=e.target.closest(".chip");if(!b)return;const on=b.classList.contains("on");$$("#"+id+" .chip").forEach(x=>x.classList.remove("on"));if(!on)b.classList.add("on")}}
+const chipVal=id=>{const b=$("#"+id+" .chip.on");return b?b.dataset.k:""};
+function skiOptions(sel,ath){
+  return S.skis.filter(s=>s.status!=="ausgemustert"&&(!ath||s.athlet===ath||s.athlet==="Pool"||s.id===sel))
+   .sort((a,b)=>(a.athlet||"").localeCompare(b.athlet||"")||(a.nr||"").localeCompare(b.nr||"",undefined,{numeric:true}))
+   .map(s=>`<option value="${s.id}" ${s.id===sel?"selected":""}>${esc(s.nr)} · ${esc(s.schliff||"–")}${s.base?" · "+esc(s.base):""}${ath?"":" · "+esc(s.athlet||"")}</option>`).join("");
+}
+function wxFields(r){return `
+   <div class="grid g3" style="margin-top:10px">
+    <label class="f">Luft °C<input id="gTa" type="number" step="0.5" inputmode="decimal" value="${r.luftT??""}"></label>
+    <label class="f">Schnee °C<input id="gTs" type="number" step="0.5" inputmode="decimal" value="${r.schneeT??""}"></label>
+    <label class="f">Feuchte %<input id="gRh" type="number" inputmode="numeric" value="${r.rh??""}"></label>
+   </div>
+   <div class="grid g2" style="margin-top:10px">
+    <label class="f">Schneeart<select id="gSnow">${SNOW.map(([k,l])=>`<option value="${k}" ${k===r.schnee?"selected":""}>${l}</option>`).join("")}</select></label>
+    <label class="f">2. Schneeart<select id="gSnow2"><option value="">– keine –</option>${SNOW.map(([k,l])=>`<option value="${k}" ${k===r.schnee2?"selected":""}>${l}</option>`).join("")}</select></label>
+   </div>
+   <div class="chips" style="margin-top:8px">${salzChip("gSalz",!!r.salz)}</div>`}
+const readWx=()=>({luftT:num($("#gTa").value),schneeT:num($("#gTs").value),rh:num($("#gRh").value),schnee:$("#gSnow").value,schnee2:$("#gSnow2").value!==$("#gSnow").value?$("#gSnow2").value:"",salz:isOn("gSalz")});
+const newBase=()=>({datum:C.date||today(),ort:C.ort||"",athlet:SEL.ath||"",luftT:C.ta,schneeT:cond().ts,rh:C.rh,schnee:C.snow,schnee2:C.snow2||"",salz:!!C.salz,notiz:""});
+
+function openAddChooser(){
+  if(!S.skis.length){toast("Erst Ski anlegen");return}
+  openSheet(`<h2>Neuer Eintrag <button class="iconbtn" data-x>×</button></h2>
+   <div class="grid" style="gap:10px">
+    <button class="btn wide" id="chTest" style="padding:18px">Skitest · bis zu 5 Ski<br><span style="font-weight:500;font-size:13px;opacity:.85">Reihenfolge = Platz im Test · vom Fuß ++ / + / 0 / -</span></button>
+    <button class="btn blue wide" id="chRace" style="padding:18px">Wettkampf / Training<br><span style="font-weight:500;font-size:13px;opacity:.85">Ski-Schulnote 1–6 · vom Fuß ++ / + / 0 / -</span></button>
+   </div>`);
+  bindSheet(null);
+  $("#chTest").onclick=()=>openTestSheet([]);
+  $("#chRace").onclick=()=>openRaceSheet(null);
+}
+
+function openRaceSheet(id){
+  const r=id?{...S.races.find(x=>x.id===id)}:Object.assign({id:uid(),typ:"Rennen",skiId:"",note:null,fuss:"",platz:""},newBase());
+  const isTest=r.typ==="Test";
+  openSheet(`<h2>${id?(isTest?"Testeintrag":"Eintrag bearbeiten"):"Wettkampf / Training"} <button class="iconbtn" data-x>×</button></h2>
+   <datalist id="athDL">${athList()}</datalist>
+   <div class="grid g2">
+    <label class="f">Art<select id="gTyp" ${isTest?"disabled":""}>${(isTest?["Test"]:["Rennen","Training"]).map(x=>`<option ${x===r.typ?"selected":""}>${x}</option>`).join("")}</select></label>
+    ${isTest?"":`<label class="f" id="gSerL" style="${r.typ==="Rennen"?"":"display:none"}">Wettkampfsystem<select id="gSer"><option value="">– wählen –</option>${SERIEN.map(([k,l])=>`<option value="${k}" ${k===r.serie?"selected":""}>${k} · ${l}</option>`).join("")}</select></label>`}
+    <label class="f">Datum<input id="gDat" type="date" value="${esc(r.datum)}"></label>
+    <label class="f">Ort<input id="gOrt" list="orte" value="${esc(r.ort)}"></label>
+    <label class="f">Athlet/in<input id="gAth" list="athDL" value="${esc(r.athlet)}"></label>
+   </div>
+   <label class="f" style="margin-top:10px">Ski*<select id="gSki"><option value="">– wählen –</option>${skiOptions(r.skiId,"")}</select></label>
+   ${wxFields(r)}
+   ${isTest?`<div class="grid g2" style="margin-top:10px">
+      <label class="f">Platz im Test<input id="gTP" type="number" min="1" max="5" inputmode="numeric" value="${r.testPlatz??""}"></label>
+      <label class="f">von … Ski<input id="gTN" type="number" min="1" max="5" inputmode="numeric" value="${r.testN??""}"></label></div>`
+    :`<h3>Ski-Note (Schulnote)</h3><div class="chips" id="gNoteC">${[1,2,3,4,5,6].map(n=>`<button class="chip ${num(r.note)===n?"on":""}" data-k="${n}" style="min-width:44px">${n}</button>`).join("")}</div>`}
+   <h3>Vom Fuß gegangen</h3>${fussChips("gFuss",r.fuss)}
+   ${isTest?"":`<label class="f" style="margin-top:10px">Platz im Rennen<input id="gPl" value="${esc(r.platz)}" inputmode="numeric"></label>`}
+   <label class="f" style="margin-top:10px">Notiz<textarea id="gNote" rows="2">${esc(r.notiz)}</textarea></label>
+   <div class="actions">${id?`<button class="btn ghost" data-del>Löschen</button>`:""}<button class="btn" data-save>Speichern</button></div>`);
+  bindSingleChips("gFuss");if(!isTest){bindSingleChips("gNoteC");$("#gTyp").onchange=e=>{$("#gSerL").style.display=e.target.value==="Rennen"?"":"none"}}
+  bindSheet(async()=>{
+    const o={...r,typ:$("#gTyp").value,datum:$("#gDat").value,ort:$("#gOrt").value.trim(),athlet:$("#gAth").value.trim(),skiId:$("#gSki").value,
+      ...readWx(),fuss:chipVal("gFuss"),notiz:$("#gNote").value.trim()};
+    if(isTest){o.testPlatz=num($("#gTP").value);o.testN=num($("#gTN").value)}
+    else{o.note=num(chipVal("gNoteC"));o.serie=o.typ==="Rennen"?$("#gSer").value:"";o.platz=$("#gPl").value.trim();delete o.rueckstand}
+    if(!o.skiId){toast("Bitte Ski wählen");return}
+    if(!isTest&&o.note==null){toast("Bitte Ski-Note 1–6 wählen");return}
+    if(!o.athlet){const s=skiById(o.skiId);if(s)o.athlet=s.athlet}
+    o.gleit=deriveGleit(o);
+    if(await put("races",o)){closeSheet();toast("Eintrag gespeichert")}
+  },()=>confirmDel("diesen Eintrag",()=>del("races",r.id)));
+}
+
+function openTestSheet(preSkis,key){
+  const old=key?S.races.filter(r=>r.typ==="Test"&&testKey(r)===key).sort((x,y)=>(num(x.testPlatz)??99)-(num(y.testPlatz)??99)):[];
+  const b=old.length?{...old[0]}:newBase();
+  if(!old.length&&preSkis.length&&!b.athlet){const a=preSkis.find(s=>s.athlet&&s.athlet!=="Pool");if(a)b.athlet=a.athlet}
+  let rows=old.length?old.map(r=>({skiId:r.skiId,fuss:r.fuss||""})):preSkis.slice(0,5).map(s=>({skiId:s.id,fuss:""}));
+  if(!rows.length)rows=[{skiId:"",fuss:""},{skiId:"",fuss:""}];
+  openSheet(`<h2>${old.length?"Skitest "+fmtD(b.datum):"Skitest"} <button class="iconbtn" data-x>×</button></h2>
+   <datalist id="athDL">${athList()}</datalist>
+   <div class="grid g2">
+    <label class="f">Datum<input id="gDat" type="date" value="${esc(b.datum)}"></label>
+    <label class="f">Ort<input id="gOrt" list="orte" value="${esc(b.ort)}"></label>
+   </div>
+   <label class="f" style="margin-top:10px">Athlet/in<input id="gAth" list="athDL" value="${esc(b.athlet)}" placeholder="filtert die Skiauswahl"></label>
+   ${wxFields(b)}
+   <h3>Reihenfolge = Platz im Test</h3>
+   <div class="small" style="margin-bottom:8px">Bester Ski oben. Mit ↑ ↓ sortieren, bis zu 5 Ski.</div>
+   <div id="tRows"></div>
+   <button class="btn ghost sm" id="tAdd" style="margin-top:4px">+ Ski hinzufügen</button>
+   <label class="f" style="margin-top:12px">Notiz<textarea id="gNote" rows="2" placeholder="z. B. Tester, Strecke, Spurzustand">${esc(b.notiz||"")}</textarea></label>
+   <div class="actions">${old.length?`<button class="btn ghost" data-del>Test löschen</button>`:""}<button class="btn" data-save>Test speichern</button></div>`);
+  const draw=()=>{
+    const ath=$("#gAth").value.trim();
+    $("#tRows").innerHTML=rows.map((r,i)=>`<div class="trow" data-i="${i}">
+      <div class="tpl">${i+1}.</div>
+      <div style="flex:1;min-width:0">
+        <select data-f="ski"><option value="">– Ski wählen –</option>${skiOptions(r.skiId,ath)}</select>
+        <div class="chips" style="margin-top:6px"><span class="small" style="align-self:center;margin-right:2px">vom Fuß</span>${FUSS.map(f=>`<button class="chip ${f===r.fuss?"on":""}" data-fuss="${f}">${f}</button>`).join("")}</div>
+      </div>
+      <div class="tbtns"><button class="iconbtn" data-mv="-1" ${i===0?"disabled":""}>↑</button><button class="iconbtn" data-mv="1" ${i===rows.length-1?"disabled":""}>↓</button><button class="iconbtn" data-rm>×</button></div>
+    </div>`).join("");
+    $("#tAdd").style.display=rows.length>=5?"none":"";
+  };
+  draw();
+  $("#gAth").addEventListener("change",draw);
+  $("#tRows").addEventListener("change",e=>{const row=e.target.closest(".trow");if(row&&e.target.dataset.f==="ski")rows[+row.dataset.i].skiId=e.target.value});
+  $("#tRows").addEventListener("click",e=>{
+    const row=e.target.closest(".trow");if(!row)return;const i=+row.dataset.i;
+    const fb=e.target.closest("[data-fuss]");
+    if(fb){rows[i].fuss=rows[i].fuss===fb.dataset.fuss?"":fb.dataset.fuss;draw();return}
+    const mv=e.target.closest("[data-mv]");
+    if(mv){const j=i+(+mv.dataset.mv);if(j<0||j>=rows.length)return;[rows[i],rows[j]]=[rows[j],rows[i]];draw();return}
+    if(e.target.closest("[data-rm]")){rows.splice(i,1);if(!rows.length)rows.push({skiId:"",fuss:""});draw()}
+  });
+  $("#tAdd").onclick=()=>{if(rows.length<5){rows.push({skiId:"",fuss:""});draw()}};
+  bindSheet(async()=>{
+    const used=rows.filter(r=>r.skiId);
+    if(!used.length){toast("Bitte Ski wählen");return}
+    if(new Set(used.map(r=>r.skiId)).size!==used.length){toast("Ein Ski ist doppelt");return}
+    const wx=readWx(),tid=old[0]?.testId||uid(),n=used.length,common={typ:"Test",testId:tid,testN:n,datum:$("#gDat").value,ort:$("#gOrt").value.trim(),notiz:$("#gNote").value.trim(),...wx};
+    for(let i=0;i<n;i++){const s=skiById(used[i].skiId);
+      const o={id:old[i]?.id||uid(),...common,athlet:$("#gAth").value.trim()||(s&&s.athlet!=="Pool"?s.athlet:"Pool"),skiId:used[i].skiId,testPlatz:i+1,fuss:used[i].fuss};
+      o.gleit=deriveGleit(o);
+      if(!await put("races",o))return;}
+    for(const r of old.slice(n))await del("races",r.id);
+    closeSheet();toast(`Test mit ${n} Ski gespeichert`);
+  },()=>confirmDel("diesen Test ("+old.length+" Ski)",async()=>{for(const r of old)await del("races",r.id)}));
+}
+function bindSheet(onSave,onDel){
+  const b=$("#sheetBody");bindToggle("gSalz");
+  b.querySelector("[data-x]").onclick=closeSheet;
+  const s=b.querySelector("[data-save]");if(s&&onSave)s.onclick=onSave;
+  const d=b.querySelector("[data-del]");if(d&&onDel)d.onclick=onDel;
+}
+function confirmDel(what,fn){
+  openSheet(`<h2>Löschen?</h2><div class="sub">Soll ${esc(what)} wirklich gelöscht werden?</div>
+   <div class="actions"><button class="btn ghost" data-no>Abbrechen</button><button class="btn" data-yes>Löschen</button></div>`);
+  $("#sheetBody [data-no]").onclick=closeSheet;
+  $("#sheetBody [data-yes]").onclick=async()=>{closeSheet();await fn();toast("Gelöscht")};
+}
+
+/* ---------------- Events ---------------- */
+const TITLES={prog:["Prognose & Skitest","Skimanager"],skis:["Datenbank","Ski"],race:["Historie","Renndaten"],more:["Einstellungen","Mehr"]};
+function go(v){
+  $$("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
+  $$(".view").forEach(x=>x.classList.toggle("on",x.id==="v-"+v));
+  $("#eyebrow").textContent=TITLES[v][0];$("#title").textContent=TITLES[v][1];
+  window.scrollTo({top:0,behavior:"smooth"});
+  try{if(location.hash!=="#"+v)history.replaceState(null,"","#"+v)}catch(e){}
+}
+$("#tabs").onclick=e=>{const b=e.target.closest("button");if(b)go(b.dataset.v)};
+window.addEventListener("hashchange",()=>{const h=location.hash.slice(1);if(TITLES[h])go(h)});
+$("#pAth").onchange=e=>{SEL.ath=e.target.value;LS.set("sm_sel",SEL);renderProg()};
+$("#pDisc").onchange=e=>{SEL.disc=e.target.value;LS.set("sm_sel",SEL);renderProg()};
+[["#cTa","ta"],["#cTaR","tar"],["#cTs","ts"]].forEach(([s,k])=>{
+  $(s).addEventListener("change",e=>{C[k]=num(e.target.value);if(k!=="ts")C.src[k]=C[k]==null?"":"manuell";if(C[k]==null&&k!=="ts")applyLive();LS.set("sm_cond",C);renderCond();renderProg();renderSkis()});
+});
+$("#cDate").addEventListener("change",e=>{C.date=e.target.value;LS.set("sm_cond",C);applyLive();renderProg()});
+$("#cTime").addEventListener("change",e=>{C.time=e.target.value||"10:00";LS.set("sm_cond",C);applyLive();renderProg()});
+$("#cOrt").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();searchPlace()}});
+$("#cOrt").addEventListener("change",e=>{if(e.target.value.trim()&&e.target.value.trim()!==C.ort)searchPlace()});
+$("#locSearch").onclick=searchPlace;$("#locGps").onclick=useGps;$("#liveRefresh").onclick=loadWeather;
+$("#resetMan").onclick=()=>{C.src={};C.ts=null;LS.set("sm_cond",C);applyLive();renderCond();renderProg();toast("Live-Werte übernommen")};
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&LIVE.data&&Date.now()-LIVE.data._at>15*60e3)loadWeather()});
+setInterval(()=>{if(!document.hidden&&C.lat!=null)loadWeather()},15*60e3);
+$("#cRh").oninput=e=>{C.rh=+e.target.value;C.src.rh="manuell";$("#rhV").textContent=C.rh+" % · "+HUM[humClass(C.rh)];LS.set("sm_cond",C);renderProg()};
+$("#progList").onclick=e=>{const r=e.target.closest("[data-ski]");if(r)openSkiSheet(r.dataset.ski)};
+$("#addSki").onclick=()=>openSkiSheet(null);
+$("#addRace").onclick=openAddChooser;
+$("#skiList").onclick=e=>{const r=e.target.closest(".row");if(r)openSkiSheet(r.dataset.id)};
+$("#raceList").onclick=e=>{const r=e.target.closest(".row");if(!r)return;if(r.dataset.kind==="test")openTestSheet([],r.dataset.key);else openRaceSheet(r.dataset.key)};
+$("#rSki").onchange=e=>{if(e.target.value){SKIF.push(e.target.value);renderRaces()}};
+$("#rSkiChips").onclick=e=>{const b=e.target.closest("[data-rm]");if(b){SKIF=SKIF.filter(x=>x!==b.dataset.rm);renderRaces()}};
+["#sQ"].forEach(s=>$(s).oninput=renderSkis);
+["#sAth","#sDisc","#sStat"].forEach(s=>$(s).onchange=renderSkis);
+["#rAth","#rTyp"].forEach(s=>$(s).onchange=renderRaces);
+$("#expBtn").onclick=async()=>{
+  const txt=JSON.stringify({version:1,exportiert:new Date().toISOString(),skis:S.skis,races:S.races},null,1);
+  $("#ioArea").value=txt;
+  try{await navigator.clipboard.writeText(txt);toast("In Zwischenablage kopiert")}catch(e){$("#ioArea").select();toast("Text markiert – bitte kopieren")}
+};
+$("#impBtn").onclick=async()=>{
+  let d;try{d=JSON.parse($("#ioArea").value)}catch(e){toast("Ungültiges JSON");return}
+  const sk=Array.isArray(d.skis)?d.skis:[],rc=Array.isArray(d.races)?d.races:[];
+  if(!sk.length&&!rc.length){toast("Keine Daten gefunden");return}
+  for(const s of sk){if(s&&s.nr){s.id=String(s.id||uid()).replace(/[^\w\-.~:@+]/g,"_");await put("skis",s)}}
+  for(const r of rc){if(r&&r.skiId){r.id=String(r.id||uid()).replace(/[^\w\-.~:@+]/g,"_");await put("races",r)}}
+  toast(`${sk.length} Ski, ${rc.length} Einträge importiert`);
+};
+
+/* ---------------- Start ---------------- */
+renderCond();applyLive();
+const h=location.hash.slice(1);if(TITLES[h])go(h);
+initDb();
+loadWeather();
+})();
+</script>
+</body>
+</html>

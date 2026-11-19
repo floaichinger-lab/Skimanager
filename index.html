@@ -408,8 +408,8 @@ function loadLocal(){S.skis=LS.get("sm_skis",[]);S.races=LS.get("sm_races",[]);S
 function saveLocal(){LS.set("sm_skis",S.skis);LS.set("sm_races",S.races);LS.set("sm_grinds",S.grinds)}
 function clean(o){const c={};for(const k in o){if(k!=="id"&&o[k]!==undefined)c[k]=o[k]}return c}
 /* Server-Zugang (Supabase). Hier fest eintragen – oder unter „Mehr → Server“ pro Gerät. */
-const SUPA_URL="";      // z. B. "https://abcd1234.supabase.co"
-const SUPA_KEY="";      // „anon public“-Schlüssel
+const SUPA_URL="https://jmwrtwcyzxsrhtuvxyck.supabase.co";      // z. B. "https://abcd1234.supabase.co"
+const SUPA_KEY="sb_publishable_ogWE1yFO1SICasIzr7bUNQ_HNFIo1by";      // „anon public“-Schlüssel
 const COLLS=["skis","races","grinds"];
 let SUPA=Object.assign({url:SUPA_URL,key:SUPA_KEY},LS.get("sm_supa",{}));
 let sb=null,SESSION=null,SUB=null,QUEUE=LS.get("sm_queue",[]),FLUSHING=false;

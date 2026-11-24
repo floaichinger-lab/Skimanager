@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Skimanager</title>
+<!-- Version 2026-11-19b -->
 <style>
 :root{
   --red:#FF5A4A; --red2:#ff7b6b; --blue:#2A2F5E; --blue2:#8B3A8F; --navy:#141a38; --mag:#A3255A;
@@ -32,7 +33,7 @@ body{
 header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:6px 4px 14px}
 .eyebrow{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);display:flex;align-items:center;gap:8px}
 h1{font-size:34px;line-height:1.05;font-weight:800;letter-spacing:-.02em;margin:4px 0 0}
-.sync{font-size:12px;color:var(--mut);padding:6px 10px;border-radius:999px;background:var(--glass);border:1px solid var(--stroke);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);white-space:nowrap}
+.sync{max-width:52vw;overflow:hidden;text-overflow:ellipsis;font-size:12px;color:var(--mut);padding:6px 10px;border-radius:999px;background:var(--glass);border:1px solid var(--stroke);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);white-space:nowrap}
 .sync b{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--warn);margin-right:6px;vertical-align:1px}
 .sync.cloud b{background:var(--ok)}
 
@@ -171,6 +172,19 @@ a{color:#9dbcff}
 .src.se{background:rgba(255,255,255,.12);color:var(--mut)}
 .hourly{width:100%;height:auto;display:block;margin-top:10px}
 #grindList .row .m{white-space:normal}
+nav.tabs{width:min(500px,calc(100% - 16px))!important}
+nav.tabs button{font-size:10.5px!important;padding:7px 2px 6px!important}
+.ach{width:100%;height:auto;display:block;margin-top:6px;overflow:visible}
+.ach .hit{cursor:pointer}
+.ach .hit:hover rect.bar,.ach .hit.sel rect.bar{fill:#ff8a7c}
+.adet{min-height:20px;font-size:13px;color:#fff;margin-top:6px;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12)}
+.legend{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--mut);margin-top:6px;flex-wrap:wrap}
+.legend .sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:4px}
+.legend .ramp{width:90px;height:10px;border-radius:5px;background:linear-gradient(90deg,rgba(255,90,74,.12),rgba(255,90,74,1))}
+.atable{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:8px}
+.atable th{text-align:left;color:var(--mut);font-weight:600;padding:6px 4px;border-bottom:1px solid rgba(255,255,255,.15)}
+.atable td{padding:6px 4px;border-bottom:1px solid rgba(255,255,255,.07)}
+.atable td.n{text-align:right;font-variant-numeric:tabular-nums}
 .trow{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);margin-bottom:8px}
 .tpl{flex:0 0 34px;height:34px;border-radius:10px;display:grid;place-items:center;font-weight:800;background:linear-gradient(160deg,#ff6e5c,#A3255A)}
 .trow:first-child .tpl{background:linear-gradient(160deg,#ffd76a,#ff8a3d);color:#2a1a00}
@@ -282,6 +296,47 @@ a{color:#9dbcff}
     </div>
   </section>
 
+  <!-- ============ ANALYSE ============ -->
+  <section class="view" id="v-ana">
+    <div class="glass card">
+      <h2>Analyse</h2>
+      <div class="grid g3">
+        <select id="aAth"></select>
+        <select id="aDisc"><option value="">Alle Disziplinen</option><option>Skating</option><option>Klassisch</option><option>Sprung</option></select>
+        <select id="aZeit"><option value="">Gesamter Zeitraum</option><option value="saison">Saison 26/27 (ab 01.07.)</option><option value="90">Letzte 90 Tage</option><option value="365">Letzte 12 Monate</option></select>
+      </div>
+      <div class="chips" id="aTyp" style="margin-top:10px"></div>
+      <div class="kpis" id="aKpis"></div>
+    </div>
+    <div class="glass card">
+      <h2>Ranking der Ski <span class="sub">Ø Index 1–10</span></h2>
+      <div class="sub">Alle Rennen und Tests umgerechnet (Testplatz, Schulnote, vom Fuß). Antippen für Details.</div>
+      <svg class="ach" id="aRank" role="img" aria-label="Ø Index je Ski"></svg>
+      <div class="adet" id="aRankDet">Ski antippen …</div>
+    </div>
+    <div class="glass card">
+      <h2>Wann ist welcher Ski gut? <span class="sub">Schneetemperatur</span></h2>
+      <div class="sub">Ø Index je Ski und Temperaturbereich. Je kräftiger, desto besser. Leer = keine Daten.</div>
+      <svg class="ach" id="aHeat" role="img" aria-label="Ø Index nach Schneetemperatur"></svg>
+      <div class="legend"><span>Index niedrig</span><span class="ramp"></span><span>hoch</span><span style="margin-left:8px">Zahl klein = Anzahl Einträge</span></div>
+      <div class="adet" id="aHeatDet">Feld antippen …</div>
+    </div>
+    <div class="glass card">
+      <h2>Schliffe im Vergleich <span class="sub">Ø Index</span></h2>
+      <svg class="ach" id="aGrind" role="img" aria-label="Ø Index je Schliff"></svg>
+    </div>
+    <div class="glass card">
+      <h2>Testbilanz <span class="sub">Platzierungen</span></h2>
+      <div class="sub">Wie oft war der Ski Testsieger, im Mittelfeld oder Letzter?</div>
+      <svg class="ach" id="aTest" role="img" aria-label="Testplatzierungen je Ski"></svg>
+      <div class="legend"><span><i class="sw" style="background:#ff5a4a"></i>Testsieg</span><span><i class="sw" style="background:#b9a6ff"></i>Mittelfeld</span><span><i class="sw" style="background:#4a5390"></i>Letzter</span></div>
+    </div>
+    <div class="glass card">
+      <h2>Tabelle</h2>
+      <div style="overflow-x:auto"><table class="atable" id="aTab"></table></div>
+    </div>
+  </section>
+
   <!-- ============ MEHR ============ -->
   <section class="view" id="v-more">
     <div class="glass card" id="srvCard">
@@ -299,11 +354,13 @@ a{color:#9dbcff}
       <div style="display:flex;gap:8px;margin:12px 0">
         <button class="btn blue sm" id="expBtn">JSON kopieren</button>
         <button class="btn ghost sm" id="impBtn">Import aus Feld</button>
+        <button class="btn sm" id="impFileBtn">JSON-Datei laden</button>
+        <input type="file" id="impFile" accept=".json,application/json,text/plain" style="display:none">
       </div>
       <textarea id="ioArea" rows="6" placeholder="JSON hier einfügen …"></textarea>
     </div>
     <div class="glass card">
-      <h2>Schliffe <span class="sub">Grind details 26</span></h2>
+      <h2>Schliffe <span class="sub">Rossignol · DSV 26/27</span></h2>
       <div class="chips" id="gFilter" style="margin-bottom:10px"></div>
       <div class="list" id="grindList"></div>
       <div class="note">★ = meistgenutzt. Einsatzbereich (°C Schneetemperatur, Schneearten, Feuchte) ist aus den Beschreibungen abgeleitet – antippen zum Anpassen. Änderungen gelten für das ganze Team.</div>
@@ -336,6 +393,7 @@ a{color:#9dbcff}
   <button class="on" data-v="prog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 1 0-1.4-8.8A6 6 0 1 0 6 16.5"/><path d="M12 13v8M9 18l3 3 3-3"/></svg>Prognose</button>
   <button data-v="skis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21 17 3.5a1.6 1.6 0 0 1 2.6 1.8L7 22"/><path d="M9 21 20.5 7"/></svg>Ski</button>
   <button data-v="race"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4"/><path d="M4 4h13l-2 4 2 4H4"/></svg>Renndaten</button>
+  <button data-v="ana"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>Analyse</button>
   <button data-v="more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Mehr</button>
 </nav>
 
@@ -353,7 +411,7 @@ a{color:#9dbcff}
 (()=>{
 "use strict";
 /* ---------------- Konstanten ---------------- */
-const SNOW=[["neu","Neuschnee"],["fein","Feinkörnig"],["kunst","Kunstschnee"],["grob","Grobkörnig/Altschnee"],["nass","Nassschnee"],["eis","Eisig"]];
+const SNOW=[["neu","Neuschnee"],["fein","Feinkörnig"],["mittel","Mittelkörnig"],["kunst","Kunstschnee"],["grob","Grobkörnig/Altschnee"],["nass","Nassschnee"],["eis","Eisig"]];
 const SNOWN=Object.fromEntries(SNOW);
 const snowsOf=o=>[o.snow??o.schnee,o.snow2??o.schnee2].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i);
 const snowTxt=o=>snowsOf(o).map(k=>SNOWN[k]).join(" + ")+(o.salz?" · Salz":"");
@@ -384,6 +442,25 @@ const GRINDS_DEF=[
  {name:"RW1",maker:"Rossignol",cond:"Nass",details:"Nass",rem:"Neu. Für Regen/sehr nassen Schnee, grobes Korn",most:"",bases:[],tMin:-1,tMax:0,schnee:["nass","grob"],feuchte:"feucht"},
  {name:"RW7",maker:"Rossignol",cond:"Nass",details:"Nass",rem:"Neu",most:"",bases:[],tMin:-2,tMax:0,schnee:["nass"],feuchte:"feucht"},
  {name:"RW10",maker:"Rossignol",cond:"Nass",details:"Nass, tiefere Struktur",rem:"Neu, tiefer für Nassschnee. MUST HAVE FÜR NASS",most:"X",bases:[],tMin:-2,tMax:0,schnee:["nass","grob"],feuchte:"feucht"}];
+GRINDS_DEF.forEach(g=>{g.set="Rossignol";if(["RC5","A6 Blue","RU18","RU8","RU8+"].includes(g.name))g.schnee.push("mittel")});
+/* DSV – Schliff-Aufstellung Nordische Kombination 26/27 */
+const DSV_KALT={set:"DSV",maker:"DSV",cond:"Kalt",most:"",bases:[],tMin:-25,tMax:-5,feuchte:"trocken"};
+const DSV_UNI ={set:"DSV",maker:"DSV",cond:"Uni", most:"",bases:[],tMin:-8, tMax:0, feuchte:"mittel"};
+const DSV_WARM={set:"DSV",maker:"DSV",cond:"Warm",most:"",bases:[],tMin:-2, tMax:0, feuchte:"feucht"};
+const dK="Trocken · Schneefeuchte 0–25 % · −5 °C und kälter",dU="Feucht · Schneefeuchte 26–44 % · 0 °C bis −8 °C",dW="Nass · Schneefeuchte 45–100 % · 0 °C";
+GRINDS_DEF.push(
+ {...DSV_KALT,name:"1-12",details:dK,rem:"Neuschnee, kalter Pulverschnee, feinkörnig",schnee:["neu","fein"]},
+ {...DSV_KALT,name:"1-13",details:dK,rem:"Neuschnee, kalter Pulverschnee, grobkörnig, eisig, bearbeitet mit Salz",schnee:["neu","fein","grob","eis"],salz:true},
+ {...DSV_KALT,name:"538",details:dK,rem:"Kunstschnee",schnee:["kunst"]},
+ {...DSV_KALT,name:"480",details:dK,rem:"Neuschnee, kalter Pulverschnee, feinkörnig",schnee:["neu","fein"]},
+ {...DSV_UNI,name:"2-23",details:dU,rem:"Mittelkörnig, Kunstschnee",schnee:["mittel","kunst"]},
+ {...DSV_UNI,name:"2-23+",details:dU,rem:"Mittelkörnig, Kunstschnee",schnee:["mittel","kunst"]},
+ {...DSV_UNI,name:"553",details:dU,rem:"Mittelkörnig, Kunstschnee",schnee:["mittel","kunst"]},
+ {...DSV_WARM,name:"3-23",details:dW,rem:"Nassschnee, Altschnee, grobkörnig",schnee:["nass","grob"]},
+ {...DSV_WARM,name:"3-23+",details:dW,rem:"Nassschnee, Altschnee, grobkörnig",schnee:["nass","grob"]},
+ {...DSV_WARM,name:"3-24",details:dW,rem:"Nassschnee, Altschnee, grobkörnig",schnee:["nass","grob"]});
+const GSETS={Rossignol:["Kalt","Universal","Nass"],DSV:["Kalt","Uni","Warm"]};
+const condCls=c=>c==="Kalt"?"k":(c==="Universal"||c==="Uni")?"s":"";
 const gid=n=>String(n).replace(/[^\w\-.~:@+]/g,"_");
 function grinds(){const ov=Object.fromEntries((S.grinds||[]).map(g=>[g.id,g]));
   return GRINDS_DEF.map(g=>{const o=ov[gid(g.name)];return o?{...g,tMin:o.tMin??g.tMin,tMax:o.tMax??g.tMax,schnee:o.schnee||g.schnee,feuchte:o.feuchte||g.feuchte,salz:o.salz??g.salz,edited:true}:g})}
@@ -530,7 +607,7 @@ function renderServer(){
     <button class="btn ghost sm" id="sUp">Alle Daten dieses Geräts hochladen</button>
     <button class="btn ghost sm" id="sOut">Abmelden</button>
    </div>${srvReset()}`;
-  $("#sSync").onclick=async()=>{await flushQueue();try{await pullAll();toast("Synchronisiert")}catch(e){toast("Server nicht erreichbar")}};
+  $("#sSync").onclick=async()=>{await flushQueue();try{await pullAll();LASTERR="";setSync("cloud","Server · synchron");toast("Synchronisiert")}catch(e){LASTERR=errTxt(e);setSync("local","Server-Fehler – lokal");toast("Fehler – Details unter Server")}renderServer()};
   $("#sUp").onclick=()=>{let n=0;COLLS.forEach(c=>S[c].forEach(o=>{enqueue("up",c,o.id,clean(o));n++}));flushQueue();toast(n+" Datensätze werden hochgeladen")};
   $("#sOut").onclick=async()=>{await sb.auth.signOut()};
   bindReset();
@@ -884,7 +961,7 @@ function renderSkis(){
     .sort((x,y)=>(x.athlet||"").localeCompare(y.athlet||"","de")||(x.nr||"").localeCompare(y.nr||"","de",{numeric:true}));
   $("#skiList").innerHTML=list.length?list.map(s=>{const st=skiStats(s.id);const cls=s.disziplin==="Klassisch"?"k":s.disziplin==="Sprung"?"s":"";
     return `<div class="row" data-id="${s.id}"><div class="badge ${cls}">${esc((s.disziplin||"").slice(0,3).toUpperCase())}</div>
-     <div class="main"><div class="t">${esc(s.nr)} · ${esc(s.schliff||"")}</div>
+     <div class="main"><div class="t">${esc(s.nr)} · ${grindOf(s.schliff)?.set==="DSV"?"DSV ":""}${esc(s.schliff||"")}</div>
      <div class="m">${esc(s.athlet||"")} · ${s.base?esc(baseTxt(s.base))+" · ":""}${esc(s.modell||"")} · ${fmtT(s.tMin)} bis ${fmtT(s.tMax)} · ${esc(s.status||"")}</div>${tbar(s,c.tsRace)}</div>
      <div class="r"><b>${st.avg!=null?r1(st.avg).toString().replace(".",","):"–"}</b>${st.n} Eintr.</div></div>`}).join("")
     :`<div class="empty">Keine Ski gefunden.<br>Mit „+“ den ersten Ski anlegen.</div>`;
@@ -950,10 +1027,10 @@ function renderMore(){
 }
 let GF="Alle";
 function renderGrinds(){
-  chipRow($("#gFilter"),["Alle","Kalt","Universal","Nass"].map(x=>[x,x]),GF,k=>{GF=k;renderGrinds()},"blue");
+  chipRow($("#gFilter"),[["Alle","Alle"],["Rossignol","Rossignol"],["DSV","DSV-Schliffe"]],GF,k=>{GF=k;renderGrinds()},"blue");
   const cnt=n=>S.skis.filter(s=>grindOf(s.schliff)?.name===n).length;
-  $("#grindList").innerHTML=grinds().filter(g=>GF==="Alle"||g.cond===GF).map(g=>`<div class="row" data-g="${esc(g.name)}">
-    <div class="badge ${g.cond==="Kalt"?"k":g.cond==="Universal"?"s":""}" style="font-size:${g.name.length>5?10:12}px">${esc(g.name)}</div>
+  $("#grindList").innerHTML=grinds().filter(g=>GF==="Alle"||g.set===GF).map(g=>`<div class="row" data-g="${esc(g.name)}">
+    <div class="badge ${condCls(g.cond)}" style="font-size:${g.name.length>5?10:12}px">${esc(g.name)}</div>
     <div class="main"><div class="t">${esc(g.name)}${g.most==="X"?" ★":""}${g.most==="Test"?" · Test":""} <span class="sub">· ${esc(g.maker)}</span></div>
     <div class="m">${g.cond} · ${fmtT(g.tMin)} bis ${fmtT(g.tMax)}${g.salz?" · 🧂 Salz":""} · ${esc(g.details)}</div>
     <div class="m">${esc(g.rem)}${g.bases.length?" · Beläge "+g.bases.join("/"):""}${g.edited?" · angepasst":""}</div></div>
@@ -980,7 +1057,99 @@ function openGrindSheet(name){
   },async()=>{closeSheet();await del("grinds",gid(G.name));toast("Standard wiederhergestellt")});
 }
 $("#grindList").onclick=e=>{const r=e.target.closest("[data-g]");if(r)openGrindSheet(r.dataset.g)};
-function renderAll(){renderProg();renderSkis();renderRaces();renderMore();renderGrinds()}
+function renderAll(){renderProg();renderSkis();renderRaces();renderMore();renderGrinds();renderAna()}
+/* ---------------- Analyse ---------------- */
+let ATYP="alle";
+const fx=v=>String(r1(v)).replace(".",",");
+function anaData(){
+  const a=$("#aAth").value,d=$("#aDisc").value,z=$("#aZeit").value;
+  let from="";
+  if(z==="saison")from="2026-07-01";else if(z){const t=new Date(Date.now()-(+z)*864e5);from=t.toISOString().slice(0,10)}
+  return S.races.filter(r=>{const s=skiById(r.skiId);if(!s||r.gleit==null)return false;
+    if(a&&r.athlet!==a)return false;if(d&&s.disziplin!==d)return false;if(from&&(r.datum||"")<from)return false;
+    if(ATYP==="rennen"&&r.typ==="Test")return false;if(ATYP==="test"&&r.typ!=="Test")return false;return true});
+}
+const TB=[["≤ −15°",-99,-15],["−15 bis −10°",-15,-10],["−10 bis −6°",-10,-6],["−6 bis −3°",-6,-3],["−3 bis 0°",-3,0.6]];
+function renderAna(){
+  if(!$("#aAth"))return;
+  fillAthSelect($("#aAth"),$("#aAth").value,"Alle Athlet/innen");
+  chipRow($("#aTyp"),[["alle","Rennen + Tests"],["rennen","nur Wettkampf/Training"],["test","nur Tests"]],ATYP,k=>{ATYP=k;renderAna()},"blue");
+  const R=anaData();
+  const by={};R.forEach(r=>{(by[r.skiId]=by[r.skiId]||[]).push(r)});
+  const rows=Object.entries(by).map(([id,rs])=>{const s=skiById(id);const g=rs.map(r=>num(r.gleit));
+    const ts=rs.filter(r=>r.typ==="Test"&&num(r.testPlatz)!=null);
+    return {id,s,n:rs.length,avg:g.reduce((x,y)=>x+y,0)/g.length,min:Math.min(...g),max:Math.max(...g),
+      tests:ts.length,wins:ts.filter(r=>num(r.testPlatz)===1).length,lasts:ts.filter(r=>num(r.testN)>1&&num(r.testPlatz)===num(r.testN)).length,
+      notes:rs.filter(r=>r.typ!=="Test"&&num(r.note)!=null).map(r=>num(r.note)),rs}}).sort((x,y)=>y.avg-x.avg);
+  const nT=new Set(R.filter(r=>r.typ==="Test").map(r=>r.testId||r.id)).size;
+  $("#aKpis").innerHTML=`<div class="kpi"><div class="l">Einträge</div><div class="v">${R.length}</div></div>
+   <div class="kpi"><div class="l">Ski mit Daten</div><div class="v">${rows.length}</div></div>
+   <div class="kpi"><div class="l">Tests</div><div class="v">${nT}</div></div>
+   <div class="kpi"><div class="l">Bester Ski</div><div class="v" style="font-size:18px">${rows[0]?esc(rows[0].s.nr):"–"}</div><div class="h">${rows[0]?"Ø "+fx(rows[0].avg):""}</div></div>`;
+  const empty=t=>`<text x="170" y="30" fill="rgba(255,255,255,.6)" font-size="12" text-anchor="middle">${t}</text>`;
+  // 1) Ranking
+  const W=340,L=104,Rm=40,bh=18,gap=8;
+  const rk=$("#aRank");
+  if(!rows.length){rk.setAttribute("viewBox","0 0 340 50");rk.innerHTML=empty("Keine Daten für diese Auswahl");$("#aRankDet").textContent="–"}
+  else{const H=rows.length*(bh+gap)+22,x=v=>L+(v/10)*(W-L-Rm);
+    rk.setAttribute("viewBox",`0 0 ${W} ${H}`);
+    rk.innerHTML=[0,2,4,6,8,10].map(v=>`<line x1="${x(v)}" x2="${x(v)}" y1="0" y2="${H-16}" stroke="rgba(255,255,255,${v===0?.3:.1})"/><text x="${x(v)}" y="${H-3}" font-size="9" fill="rgba(255,255,255,.55)" text-anchor="middle">${v}</text>`).join("")+
+     rows.map((r,i)=>{const y=i*(bh+gap);return `<g class="hit" data-id="${r.id}">
+      <rect x="0" y="${y-3}" width="${W}" height="${bh+6}" fill="transparent"/>
+      <text x="${L-8}" y="${y+bh/2+4}" font-size="11.5" font-weight="700" fill="#fff" text-anchor="end">${esc(r.s.nr)}</text>
+      <rect class="bar" x="${x(0)}" y="${y}" width="${Math.max(4,x(r.avg)-x(0))}" height="${bh}" rx="4" fill="#ff5a4a"/>
+      <text x="${x(r.avg)+6}" y="${y+bh/2+4}" font-size="11" font-weight="700" fill="#fff">${fx(r.avg)}</text>
+      <title>${esc(r.s.nr)}: Ø ${fx(r.avg)} aus ${r.n} Einträgen</title></g>`}).join("");
+    const det=id=>{const r=rows.find(q=>q.id===id);if(!r)return;$$("#aRank .hit").forEach(g=>g.classList.toggle("sel",g.dataset.id===id));
+      $("#aRankDet").innerHTML=`<b>${esc(r.s.nr)}</b> · ${esc(r.s.schliff||"–")}${r.s.base?" · "+esc(r.s.base):""} · ${esc(r.s.athlet||"")}<br>Ø ${fx(r.avg)} (Spanne ${fx(r.min)}–${fx(r.max)}) aus ${r.n} Einträgen · Tests ${r.tests} (${r.wins}× Sieg, ${r.lasts}× Letzter)${r.notes.length?` · Ø Schulnote ${fx(r.notes.reduce((x,y)=>x+y,0)/r.notes.length)}`:""}`};
+    rk.onclick=e=>{const g=e.target.closest(".hit");if(g)det(g.dataset.id)};det(rows[0].id);
+  }
+  // 2) Heatmap
+  const hm=$("#aHeat");
+  if(!rows.length){hm.setAttribute("viewBox","0 0 340 50");hm.innerHTML=empty("Keine Daten");$("#aHeatDet").textContent="–"}
+  else{const L2=70,cw=(W-L2)/TB.length,ch=26,H=rows.length*ch+30;
+    hm.setAttribute("viewBox",`0 0 ${W} ${H}`);
+    let out=TB.map((b,j)=>`<text x="${L2+j*cw+cw/2}" y="12" font-size="8.5" fill="rgba(255,255,255,.65)" text-anchor="middle">${b[0]}</text>`).join("");
+    rows.forEach((r,i)=>{const y=20+i*ch;
+      out+=`<text x="${L2-6}" y="${y+ch/2+4}" font-size="11" font-weight="700" fill="#fff" text-anchor="end">${esc(r.s.nr)}</text>`;
+      TB.forEach((b,j)=>{const c=r.rs.filter(q=>{const t=num(q.schneeT);return t!=null&&t>b[1]&&t<=b[2]});
+        const x0=L2+j*cw+1;
+        if(!c.length){out+=`<rect x="${x0}" y="${y+1}" width="${cw-2}" height="${ch-2}" rx="5" fill="none" stroke="rgba(255,255,255,.12)" stroke-dasharray="3 3"/>`;return}
+        const av=c.reduce((s,q)=>s+num(q.gleit),0)/c.length,op=0.12+0.88*Math.max(0,Math.min(1,(av-2)/8));
+        out+=`<g class="hit" data-c="${r.id}|${j}"><rect x="${x0}" y="${y+1}" width="${cw-2}" height="${ch-2}" rx="5" fill="rgba(255,90,74,${op.toFixed(2)})"/>
+          <text x="${x0+cw/2-1}" y="${y+ch/2+3}" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">${fx(av)}<tspan font-size="7.5" font-weight="500" fill="rgba(255,255,255,.75)" dx="2">${c.length}</tspan></text>
+          <title>${esc(r.s.nr)} ${b[0]}: Ø ${fx(av)} (${c.length})</title></g>`});
+    });
+    hm.innerHTML=out;
+    hm.onclick=e=>{const g=e.target.closest(".hit");if(!g)return;const [id,j]=g.dataset.c.split("|");const r=rows.find(q=>q.id===id),b=TB[+j];
+      const c=r.rs.filter(q=>{const t=num(q.schneeT);return t!=null&&t>b[1]&&t<=b[2]});
+      $("#aHeatDet").innerHTML=`<b>${esc(r.s.nr)}</b> bei ${b[0]}: `+c.map(q=>`${fmtD(q.datum).slice(0,5)} ${esc(q.ort||"")} ${q.typ==="Test"?q.testPlatz+"./"+q.testN:"Note "+(q.note??"–")}${q.salz?" 🧂":""}`).join(" · ")};
+  }
+  // 3) Schliffe
+  const gm={};R.forEach(r=>{const s=skiById(r.skiId);const g=grindOf(s.schliff)?.name||s.schliff||"ohne";(gm[g]=gm[g]||[]).push(num(r.gleit))});
+  const gr=Object.entries(gm).map(([g,v])=>({g,n:v.length,avg:v.reduce((x,y)=>x+y,0)/v.length,c:grindOf(g)?.cond||""})).sort((a,b)=>b.avg-a.avg);
+  const gs=$("#aGrind");
+  if(!gr.length){gs.setAttribute("viewBox","0 0 340 50");gs.innerHTML=empty("Keine Daten")}
+  else{const H=gr.length*26+22,x=v=>L+(v/10)*(W-L-Rm);gs.setAttribute("viewBox",`0 0 ${W} ${H}`);
+    gs.innerHTML=[0,5,10].map(v=>`<line x1="${x(v)}" x2="${x(v)}" y1="0" y2="${H-16}" stroke="rgba(255,255,255,.1)"/><text x="${x(v)}" y="${H-3}" font-size="9" fill="rgba(255,255,255,.55)" text-anchor="middle">${v}</text>`).join("")+
+     gr.map((r,i)=>{const y=i*26;return `<text x="${L-8}" y="${y+13}" font-size="11.5" font-weight="700" fill="#fff" text-anchor="end">${esc(r.g)}</text><text x="${L-8}" y="${y+22}" font-size="8" fill="rgba(255,255,255,.55)" text-anchor="end">${r.c}</text>
+      <rect x="${x(0)}" y="${y+2}" width="${Math.max(4,x(r.avg)-x(0))}" height="16" rx="4" fill="#b9a6ff"/>
+      <text x="${x(r.avg)+6}" y="${y+14}" font-size="11" font-weight="700" fill="#fff">${fx(r.avg)} <tspan font-size="9" font-weight="500" fill="rgba(255,255,255,.6)">(${r.n})</tspan></text>`}).join("");
+  }
+  // 4) Testbilanz (gestapelt)
+  const tr=rows.filter(r=>r.tests).sort((a,b)=>b.wins/b.tests-a.wins/a.tests||b.tests-a.tests);
+  const tt=$("#aTest");
+  if(!tr.length){tt.setAttribute("viewBox","0 0 340 50");tt.innerHTML=empty("Noch keine Tests")}
+  else{const mx=Math.max(...tr.map(r=>r.tests)),H=tr.length*26+22,x=v=>L+(v/mx)*(W-L-Rm);tt.setAttribute("viewBox",`0 0 ${W} ${H}`);
+    tt.innerHTML=tr.map((r,i)=>{const y=i*26,mid=r.tests-r.wins-r.lasts;let cx=x(0);const seg=(v,col)=>{if(!v)return"";const w=x(v)-x(0);const s=`<rect x="${cx}" y="${y+2}" width="${Math.max(2,w-2)}" height="16" rx="4" fill="${col}"/>`;cx+=w;return s};
+      return `<text x="${L-8}" y="${y+14}" font-size="11.5" font-weight="700" fill="#fff" text-anchor="end">${esc(r.s.nr)}</text>${seg(r.wins,"#ff5a4a")}${seg(mid,"#b9a6ff")}${seg(r.lasts,"#4a5390")}
+       <text x="${cx+4}" y="${y+14}" font-size="10.5" fill="#fff">${r.wins}/${r.tests}</text><title>${esc(r.s.nr)}: ${r.wins} Siege, ${mid} Mittelfeld, ${r.lasts} Letzter von ${r.tests} Tests</title>`}).join("")+
+     `<text x="${L}" y="${H-3}" font-size="9" fill="rgba(255,255,255,.55)">Balkenlänge = Anzahl Tests · Zahl = Siege/Tests</text>`;
+  }
+  // 5) Tabelle
+  $("#aTab").innerHTML=`<tr><th>Ski</th><th>Schliff</th><th class="n">Ø</th><th class="n">n</th><th class="n">Siege</th><th class="n">Ø Note</th></tr>`+
+    rows.map(r=>`<tr><td><b>${esc(r.s.nr)}</b></td><td>${esc(r.s.schliff||"–")}</td><td class="n">${fx(r.avg)}</td><td class="n">${r.n}</td><td class="n">${r.wins}/${r.tests}</td><td class="n">${r.notes.length?fx(r.notes.reduce((x,y)=>x+y,0)/r.notes.length):"–"}</td></tr>`).join("");
+}
 
 /* ---------------- Sheets ---------------- */
 function openSheet(html){$("#sheetBody").innerHTML=html;$("#sheet").classList.add("on");$("#scrim").classList.add("on");$("#sheet").scrollTop=0}
@@ -999,7 +1168,8 @@ function openSkiSheet(id){
     <label class="f">Disziplin<select id="fDisc">${["Skating","Klassisch","Sprung"].map(x=>`<option ${x===s.disziplin?"selected":""}>${x}</option>`).join("")}</select></label>
     <label class="f">Status<select id="fStat">${["aktiv","Test","Reserve","ausgemustert"].map(x=>`<option ${x===s.status?"selected":""}>${x}</option>`).join("")}</select></label>
     <label class="f">Modell<input id="fMod" value="${esc(s.modell)}" placeholder="z. B. X-IUM Skating Premium+"></label>
-    <label class="f">Schliff<select id="fSch"><option value="">– kein Eintrag –</option>${["Kalt","Universal","Nass"].map(cg=>`<optgroup label="${cg}">${grinds().filter(g=>g.cond===cg).map(g=>`<option value="${esc(g.name)}" ${grindOf(s.schliff)===g?"selected":""}>${esc(g.name)}${g.most==="X"?" ★":g.most==="Test"?" (Test)":""}</option>`).join("")}</optgroup>`).join("")}${s.schliff&&!grindOf(s.schliff)?`<option value="${esc(s.schliff)}" selected>${esc(s.schliff)} (sonstiger)</option>`:""}</select></label>
+    <label class="f">Schliff-System<div class="seg" id="fSys">${Object.keys(GSETS).map(k=>`<button type="button" data-k="${k}">${k==="DSV"?"DSV-Schliff":"Rossignol"}</button>`).join("")}</div></label>
+    <label class="f">Schliff<select id="fSch"></select></label>
     <label class="f">Belag<select id="fBase"><option value="">– kein Eintrag –</option>${Object.entries(BASES).map(([k,v])=>`<option value="${k}" ${k===s.base?"selected":""}>${k} ${v.n} · ${v.mat}</option>`).join("")}${s.base&&!BASES[s.base]?`<option value="${esc(s.base)}" selected>${esc(s.base)} (sonstiger)</option>`:""}</select></label>
     <label class="f">Länge (cm)<input id="fLen" type="number" inputmode="numeric" value="${esc(s.laenge)}"></label>
     <label class="f">Flex / Härte<select id="fFlex">${["weich","mittel","hart"].map(x=>`<option ${x===s.flex?"selected":""}>${x}</option>`).join("")}</select></label>
@@ -1020,10 +1190,19 @@ function openSkiSheet(id){
       <br><button class="btn ghost sm" id="fGApply" style="margin-top:6px">Einsatzprofil aus Schliff übernehmen</button>`;
     $("#fGApply").onclick=()=>{$("#fTmin").value=G.tMin;$("#fTmax").value=G.tMax;$("#fHum").value=G.feuchte;$$("#fSnow .chip").forEach(b=>b.classList.toggle("on",G.schnee.includes(b.dataset.k)));$("#fSalz").classList.toggle("on",!!G.salz);toast("Profil von "+G.name+" übernommen")};
     if(apply)$("#fGApply").click()};
+  let sys=grindOf(s.schliff)?.set||s.schliffSys||"Rossignol";
+  const fillSch=cur=>{
+    $$("#fSys button").forEach(b=>b.classList.toggle("on",b.dataset.k===sys));
+    const G=grindOf(cur);
+    $("#fSch").innerHTML=`<option value="">– kein Eintrag –</option>`+GSETS[sys].map(cg=>`<optgroup label="${cg}">${grinds().filter(g=>g.set===sys&&g.cond===cg).map(g=>`<option value="${esc(g.name)}" ${G===g?"selected":""}>${esc(g.name)}${g.most==="X"?" ★":g.most==="Test"?" (Test)":""}${g.salz?" 🧂":""}</option>`).join("")}</optgroup>`).join("")+
+      (cur&&!G?`<option value="${esc(cur)}" selected>${esc(cur)} (sonstiger)</option>`:"");
+  };
+  fillSch(s.schliff);
+  $("#fSys").onclick=e=>{const b=e.target.closest("button");if(!b||b.dataset.k===sys)return;sys=b.dataset.k;fillSch("");gInfo(false)};
   $("#fSch").onchange=()=>gInfo(!id);gInfo(false);
   bindSheet(async()=>{
     const o={...s,nr:$("#fNr").value.trim(),athlet:$("#fAth").value.trim(),disziplin:$("#fDisc").value,status:$("#fStat").value,
-      modell:$("#fMod").value.trim(),schliff:$("#fSch").value,base:$("#fBase").value,laenge:num($("#fLen").value),
+      modell:$("#fMod").value.trim(),schliff:$("#fSch").value,schliffSys:sys,base:$("#fBase").value,laenge:num($("#fLen").value),
       flex:$("#fFlex").value,feuchte:$("#fHum").value,tMin:num($("#fTmin").value)??-10,tMax:num($("#fTmax").value)??0,
       schnee:$$("#fSnow .chip.on").map(b=>b.dataset.k),salz:isOn("fSalz"),notiz:$("#fNote").value.trim()};
     if(!o.nr){toast("Ski-Nr. fehlt");return}
@@ -1195,7 +1374,7 @@ function confirmDel(what,fn){
 }
 
 /* ---------------- Events ---------------- */
-const TITLES={prog:["Prognose & Skitest","Skimanager"],skis:["Datenbank","Ski"],race:["Historie","Renndaten"],more:["Einstellungen","Mehr"]};
+const TITLES={prog:["Prognose & Skitest","Skimanager"],skis:["Datenbank","Ski"],race:["Historie","Renndaten"],ana:["Auswertung","Analyse"],more:["Einstellungen","Mehr"]};
 function go(v){
   $$("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
   $$(".view").forEach(x=>x.classList.toggle("on",x.id==="v-"+v));
@@ -1229,11 +1408,14 @@ $("#rSkiChips").onclick=e=>{const b=e.target.closest("[data-rm]");if(b){SKIF=SKI
 ["#sQ"].forEach(s=>$(s).oninput=renderSkis);
 ["#sAth","#sDisc","#sStat"].forEach(s=>$(s).onchange=renderSkis);
 ["#rAth","#rTyp"].forEach(s=>$(s).onchange=renderRaces);
+["#aAth","#aDisc","#aZeit"].forEach(s=>$(s).onchange=renderAna);
 $("#expBtn").onclick=async()=>{
   const txt=JSON.stringify({version:1,exportiert:new Date().toISOString(),skis:S.skis,races:S.races},null,1);
   $("#ioArea").value=txt;
   try{await navigator.clipboard.writeText(txt);toast("In Zwischenablage kopiert")}catch(e){$("#ioArea").select();toast("Text markiert – bitte kopieren")}
 };
+$("#impFileBtn").onclick=()=>$("#impFile").click();
+$("#impFile").onchange=async e=>{const f=e.target.files[0];if(!f)return;$("#ioArea").value=await f.text();e.target.value="";$("#impBtn").click()};
 $("#impBtn").onclick=async()=>{
   let d;try{d=JSON.parse($("#ioArea").value)}catch(e){toast("Ungültiges JSON");return}
   const sk=Array.isArray(d.skis)?d.skis:[],rc=Array.isArray(d.races)?d.races:[];
